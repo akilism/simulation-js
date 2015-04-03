@@ -17,6 +17,10 @@ Mover.prototype.update = function() {
   this.checkEdges();
 };
 
+Mover.prototype.setNewColor = function(color) {
+  this.shape.setNewColor(color);
+};
+
 Mover.prototype.checkEdges = function() {
   if (this.position.x > this.worldWidth) { this.position.x = this.worldWidth; this.velocity.x *= -1; }
   else if(this.position.x < 0) { this.position.x = 0;  this.velocity.x *= -1; }

@@ -59,14 +59,23 @@ var cnvs = (function() {
   //   }
   // };
 
+  var getColor = function() {
+      var r = Math.floor(Math.random() * 256),
+      g = Math.floor(Math.random() * 256),
+      b = Math.floor(Math.random() * 256),
+      a = 1;
+      // r = 0; g = 0; b = 0;
+      a = 0.5;//Math.random();
+      return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+  };
+
   var addCircle = function() {
     var mass = Math.max(100, Math.round(Math.random() * 400));
-    var x = (Math.random() > 0.5) ? -100 : canvasWidth + 100;
     circles.push(new Mover(Circle,
-      {r: rScaler(mass) , color: '#000000'},
+      {r: rScaler(mass) , color: 'rgba(0,0,0,1)'},
       mass,
       new Vector(Math.random()*canvasWidth,
-      canvasHeight + 100),
+      canvasHeight + 300),
       canvasWidth,
       canvasHeight));
   };
@@ -103,11 +112,13 @@ var cnvs = (function() {
     render();
   };
 
-  var setRandomColors = function() {
+  var flipCircleColors = function(toRandom) {
     circles.forEach(function(circle) {
-      circle.setNewColor();
+      var color = (toRandom) ? getColor() : 'rgba(0,0,0,1)';
+      circle.setNewColor(color);
     });
   };
+
 
   var onClick = function(evt) {
     clickX = evt.clientX;
@@ -115,7 +126,7 @@ var cnvs = (function() {
     // console.log('click', clickX, clickY);
     mouseClicked = !mouseClicked;
 
-    setRandomColors();
+
     if(!mouseClicked) {
       ga('send', 'event', 'canvas', 'click', 'froze canvas', mouseClicked);
     } else {
@@ -198,24 +209,31 @@ var cnvs = (function() {
   };
 
 
-  Circle.prototype.lerp = function(a, b, x) {
-    return a * (1 - x) + b * x;
+  Circle.prototype.incrementColor = function(a, b, x) {
+    if(b != a) {
+      return a += 1;
+    }
+    return a;
+    // return a * (1 - x) + b * x;
   };
 
   Circle.prototype.setNewColor = function(color) {
     this.newColor = color;
   };
 
-  Circle.getColorString = function(color) {
-    return 'rgb(' + color.r + ',' + color.g + ',' + color.b + ')';
+  Circle.prototype.getColorString = function(color) {
+    return 'rgba(' + color.r + ',' + color.g + ',' + color.b + ',' + color.a + ')';
   };
 
-  Circle.getColorObj = function(color) {
-    var colors = color.replace('rgb(', '').replace(')', '').split(',');
+  Circle.prototype.getColorObj = function(color) {
+    var colors = color.replace('rgba(', '').replace(')', '').split(',');
+
+    // if(colors[0].indexOf('r') > -1) { debugger; }
     return {
       r: parseFloat(colors[0]),
       g: parseFloat(colors[1]),
       b: parseFloat(colors[2]),
+      a: parseFloat(colors[3]),
     };
   };
 
@@ -226,18 +244,21 @@ var cnvs = (function() {
     var oldColorObj = this.getColorObj(this.color);
 
     var currColorObj = {
-      r: this.lerp(oldColorObj.r, newColorObj.r, 0.5),
-      g: this.lerp(oldColorObj.g, newColorObj.g, 0.5),
-      b: this.lerp(oldColorObj.b, newColorObj.b, 0.5)
+      r: this.incrementColor(oldColorObj.r, newColorObj.r, 1),
+      g: this.incrementColor(oldColorObj.g, newColorObj.g, 1),
+      b: this.incrementColor(oldColorObj.b, newColorObj.b, 1),
+      a: 0.5
     };
-
-    this.color = this.getColorString(currColorObj);
+    var colorStr = this.getColorString(currColorObj);
+    // console.log(colorStr);
+    this.color = colorStr;
   };
 
   Circle.prototype.draw = function(ctx) {
     this.setColor();
     ctx.beginPath();
     ctx.arc(this.position.x, this.position.y, this.r, 0, this.endAngle, false);
+
     ctx.fillStyle = this.color;
     ctx.fill();
   };

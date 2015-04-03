@@ -41,7 +41,7 @@
   var start = function () {
     cnvs.redraw();
     document.removeEventListener('visibilitychange', start);
-    setTimeout(selectCanvas, 4000);
+    setTimeout(selectCanvas, 5000);
   };
 
   if(cnvs.isCanvasEnabled()) {
@@ -56,6 +56,7 @@
       document.addEventListener('visibilitychange', start, false);
     } else {
       cnvs.redraw();
+      setTimeout(selectCanvas, 5000);
     }
   }
 })();
