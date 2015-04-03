@@ -47,9 +47,7 @@ var cnvs = (function() {
       rScaler = interpolater(100, 400, Math.min(90, canvasWidth/8), Math.max(15, canvasWidth/24));
       alphaScaler = interpolater(0, 1, 0, 255);
       // addCircles(10);
-      // setTimeout(function() {
-      //   mouseClicked = true;
-      // }, 4000);
+
     } else {
       isCanvasEnabled = false;
     }
@@ -63,11 +61,12 @@ var cnvs = (function() {
 
   var addCircle = function() {
     var mass = Math.max(100, Math.round(Math.random() * 400));
+    var x = (Math.random() > 0.5) ? -100 : canvasWidth + 100;
     circles.push(new Mover(Circle,
       {r: rScaler(mass) , color: '#000000'},
       mass,
       new Vector(Math.random()*canvasWidth,
-      -100),
+      canvasHeight + 100),
       canvasWidth,
       canvasHeight));
   };
@@ -104,12 +103,19 @@ var cnvs = (function() {
     render();
   };
 
+  var setRandomColors = function() {
+    circles.forEach(function(circle) {
+      circle.setNewColor();
+    });
+  };
+
   var onClick = function(evt) {
     clickX = evt.clientX;
     clickY = evt.clientY;
     // console.log('click', clickX, clickY);
     mouseClicked = !mouseClicked;
 
+    setRandomColors();
     if(!mouseClicked) {
       ga('send', 'event', 'canvas', 'click', 'froze canvas', mouseClicked);
     } else {
@@ -188,9 +194,48 @@ var cnvs = (function() {
     this.color = opts.color || '#dfdfdf';
     this.endAngle = 2*Math.PI;
     this.position = null;
+    this.newColor = null;
+  };
+
+
+  Circle.prototype.lerp = function(a, b, x) {
+    return a * (1 - x) + b * x;
+  };
+
+  Circle.prototype.setNewColor = function(color) {
+    this.newColor = color;
+  };
+
+  Circle.getColorString = function(color) {
+    return 'rgb(' + color.r + ',' + color.g + ',' + color.b + ')';
+  };
+
+  Circle.getColorObj = function(color) {
+    var colors = color.replace('rgb(', '').replace(')', '').split(',');
+    return {
+      r: parseFloat(colors[0]),
+      g: parseFloat(colors[1]),
+      b: parseFloat(colors[2]),
+    };
+  };
+
+  Circle.prototype.setColor = function() {
+    if(this.newColor === this.color || !this.newColor) { return this.color; }
+
+    var newColorObj = this.getColorObj(this.newColor);
+    var oldColorObj = this.getColorObj(this.color);
+
+    var currColorObj = {
+      r: this.lerp(oldColorObj.r, newColorObj.r, 0.5),
+      g: this.lerp(oldColorObj.g, newColorObj.g, 0.5),
+      b: this.lerp(oldColorObj.b, newColorObj.b, 0.5)
+    };
+
+    this.color = this.getColorString(currColorObj);
   };
 
   Circle.prototype.draw = function(ctx) {
+    this.setColor();
     ctx.beginPath();
     ctx.arc(this.position.x, this.position.y, this.r, 0, this.endAngle, false);
     ctx.fillStyle = this.color;

@@ -38,6 +38,12 @@
 
   cnvs.setCanvas(bgCanvas);
 
+  var start = function () {
+    cnvs.redraw();
+    document.removeEventListener('visibilitychange', start);
+    setTimeout(selectCanvas, 4000);
+  };
+
   if(cnvs.isCanvasEnabled()) {
     window.onresize = resizeCanvas;
     var elements = document.querySelectorAll('.main *:not(a)');
@@ -46,5 +52,10 @@
       element.addEventListener('click', selectCanvas, false);
     });
 
-    cnvs.redraw(); }
+    if(document.visibilityState === 'hidden') {
+      document.addEventListener('visibilitychange', start, false);
+    } else {
+      cnvs.redraw();
+    }
+  }
 })();
