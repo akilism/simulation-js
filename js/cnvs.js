@@ -17,6 +17,7 @@ var cnvs = (function() {
     moveY,
     xScaler,
     yScaler,
+    rScaler,
     alphaScaler,
     tx = 0,
     ty = 10000,
@@ -46,7 +47,7 @@ var cnvs = (function() {
       // canvas.addEventListener('mousemove', onMouseMove);
       xScaler = interpolater(0, 1, 0, 600);
       yScaler = interpolater(0, 1, 0, 600);
-      // rScaler = interpolater(100, 400, Math.min(90, canvasWidth/8), Math.max(15, canvasWidth/24));
+      rScaler = interpolater(100, 400, Math.min(90, canvasWidth/8), Math.max(15, canvasWidth/24));
       alphaScaler = interpolater(0, 1, 0, 255);
       particleSystems.push(new ParticleSystem(new Vector(canvasWidth/1.8, 150), canvasWidth, canvasHeight));
       addRepeller();
@@ -55,23 +56,25 @@ var cnvs = (function() {
     }
   };
 
-  var getColor = function() {
+  var getColor = function(isBlack) {
       var r = Math.floor(Math.random() * 256),
       g = Math.floor(Math.random() * 256),
       b = Math.floor(Math.random() * 256),
-      a = 1;
-      r = 0; g = 0; b = 0;
-      a = 1;//Math.random();
+      a = Math.random();
+      if(isBlack) {
+        r = 0; g = 0; b = 0;
+        a = 1;//
+      }
       return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
   };
 
   var addAttractor = function() {
-    var mass = 12;
+    var mass = 60;
     attractors.push(new Attractor(Circle,
       {r: mass, color: '#00FF00'},
       mass,
       1,
-      new Vector(canvasWidth/2, canvasHeight/2)
+      new Vector(canvasWidth/2, canvasHeight - 100)
     ));
   };
 
@@ -88,8 +91,9 @@ var cnvs = (function() {
   var addMover = function() {
     var mass = Math.max(100, Math.round(Math.random() * 400));
     movers.push(new Mover(Circle,
-      {r: rScaler(mass) , color: 'rgba(0,0,0,1)'},
+      {r: rScaler(mass) , color: getColor(true)},
       mass,
+      0.01,
       new Vector(Math.random()*canvasWidth,
       canvasHeight + 300),
       canvasWidth,
@@ -104,7 +108,8 @@ var cnvs = (function() {
   var render = function() {
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     particleSystems.forEach(function(particleSystem) { particleSystem.draw(ctx); });
-    repellers.forEach(function(repeller) { repeller.draw(ctx); });
+    // repellers.forEach(function(repeller) { repeller.draw(ctx); });
+    // attractors.forEach(function(attractor) { attractor.draw(ctx); });
     movers.forEach(function(mover) { mover.draw(ctx); });
     counter++;
   };
@@ -180,7 +185,6 @@ var cnvs = (function() {
       });
 
       mover.applyForce(new Vector(0.01, 0)); //wind
-      mover.applyForce(new Vector(0, 0.1 * mover.mass)); //gravity
     } else {
       var friction = mover.getFriction(1, 10);
       mover.applyForce(friction);
