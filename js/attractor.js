@@ -1,5 +1,5 @@
-var Attractor = function(Shape, shapeOpts, mass, G, initialPosition) {
-  this.shape = new Shape(shapeOpts);
+var Attractor = function(ShapeType, shapeOpts, mass, G, initialPosition) {
+  this.shape = new ShapeType(shapeOpts);
   this.position = initialPosition;
   this.mass = mass;
   this.G = G;
