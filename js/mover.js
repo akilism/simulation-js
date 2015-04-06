@@ -1,11 +1,12 @@
-var Mover = function(Shape, shapeOpts, mass, initialPosition, width, height) {
-  this.shape = new Shape(shapeOpts);
+var Mover = function(ShapeType, shapeOpts, mass, G, initialPosition, width, height) {
+  this.shape = new ShapeType(shapeOpts);
   this.worldWidth = width;
   this.worldHeight = height;
   this.position = initialPosition;
   this.velocity = new Vector(0, 0);
   this.acceleration = new Vector(0, 0);
   this.mass = mass;
+  this.G = G;
   this.shape.setPosition(this.position);
 };
 
@@ -15,10 +16,6 @@ Mover.prototype.update = function() {
   this.acceleration = this.acceleration.multiply(0);
   this.shape.setPosition(this.position);
   this.checkEdges();
-};
-
-Mover.prototype.setNewColor = function(color) {
-  this.shape.setNewColor(color);
 };
 
 Mover.prototype.checkEdges = function() {
@@ -43,13 +40,15 @@ Mover.prototype.getDrag = function(c, p) {
   return drag.multiply(dragMagnitude);
 };
 
-Mover.prototype.gravitationalForceOf = function(other) {
-  var G = 1;
+Mover.prototype.comeHere = function(other) {
   var d = this.position.subtract(other.position);
   var distance = d.magnitude();
+  distance = Math.min(distance, 250);
+  distance = Math.max(distance, 10);
   var force = d.normalize();
-  var strength = (G * this.mass * other.mass) / (distance * distance);
-  return force.multiply(strength);
+
+  var strength = (this.G * this.mass * other.mass) / (distance * distance);
+  return (distance === 0) ? force.multiply(1) : force.multiply(strength);
 };
 
 Mover.prototype.draw = function(ctx) {
