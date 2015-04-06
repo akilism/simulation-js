@@ -2,6 +2,7 @@ var Vector = function(x, y) {
   this.x = x;
   this.y = y;
   this.mag = null;
+  this.magSquared = null;
   this.normalized = null;
 };
 
@@ -21,8 +22,13 @@ Vector.prototype.divide = function(n) {
   return new Vector((this.x / n), (this.y / n));
 };
 
+Vector.prototype.magnitudeSqared = function() {
+  if(!this.magSquared) { this.magSquared = (this.x * this.x) + (this.y * this.y); }
+  return this.magSquared;
+};
+
 Vector.prototype.magnitude = function() {
-  if(!this.mag) { this.mag = Math.sqrt((this.x * this.x) + (this.y * this.y)); }
+  if(!this.mag) { this.mag = Math.sqrt(this.magnitudeSqared()); }
   return this.mag;
 };
 
@@ -40,7 +46,7 @@ Vector.prototype.normalize = function() {
 
 Vector.prototype.limit = function(max) {
   // console.log(this.magnitude());
-  if(this.magnitude() * this.magnitude() > max * max) {
+  if(this.magnitudeSqared() > max * max) {
     var norm = this.normalize();
     return norm.multiply(max);
   }

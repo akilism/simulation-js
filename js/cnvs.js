@@ -47,7 +47,7 @@ var cnvs = (function() {
       // canvas.addEventListener('mousemove', onMouseMove);
       xScaler = interpolater(0, 1, 0, 600);
       yScaler = interpolater(0, 1, 0, 600);
-      rScaler = interpolater(100, 400, Math.min(90, canvasWidth/8), Math.max(15, canvasWidth/24));
+      rScaler = interpolater(100, 400, Math.min(75, canvasWidth/8), Math.max(15, canvasWidth/24));
       alphaScaler = interpolater(0, 1, 0, 255);
       particleSystems.push(new ParticleSystem(new Vector(canvasWidth/1.8, 150), canvasWidth, canvasHeight));
       addRepeller();
@@ -69,12 +69,12 @@ var cnvs = (function() {
   };
 
   var addAttractor = function() {
-    var mass = 60;
+    var mass = 50;
     attractors.push(new Attractor(Circle,
       {r: mass, color: '#00FF00'},
       mass,
       1,
-      new Vector(canvasWidth/2, canvasHeight - 100)
+      new Vector(canvasWidth/2, canvasHeight-100)
     ));
   };
 
@@ -95,7 +95,7 @@ var cnvs = (function() {
       mass,
       0.01,
       new Vector(Math.random()*canvasWidth,
-      -100),
+      canvasHeight + 200),
       canvasWidth,
       canvasHeight));
   };
