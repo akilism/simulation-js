@@ -37,3 +37,15 @@ Vector.prototype.normalize = function() {
 
   return this.normalized;
 };
+
+Vector.prototype.limit = function(max) {
+  if(this.magnitude() > max) {
+    var norm = this.normalize();
+    return norm.limit(max);
+  }
+  return new Vector(this.x, this.y);
+};
+
+Vector.prototype.get = function() {
+  return new Vector(this.x, this.y);
+};
