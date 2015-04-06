@@ -32,16 +32,17 @@ Vector.prototype.normalize = function() {
     if(mag > 0) {
       this.normalized = this.divide(mag);
     }
-    this.normalized = this;
+    this.normalized = this.get();
   }
 
-  return this.normalized;
+  return this.normalized.get();
 };
 
 Vector.prototype.limit = function(max) {
-  if(this.magnitude() > max) {
+  // console.log(this.magnitude());
+  if(this.magnitude() * this.magnitude() > max * max) {
     var norm = this.normalize();
-    return norm.limit(max);
+    return norm.multiply(max);
   }
   return new Vector(this.x, this.y);
 };

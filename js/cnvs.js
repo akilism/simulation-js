@@ -63,7 +63,7 @@ var cnvs = (function() {
       a = Math.random();
       if(isBlack) {
         r = 0; g = 0; b = 0;
-        a = 1;//
+        a = 1;
       }
       return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
   };
@@ -95,7 +95,7 @@ var cnvs = (function() {
       mass,
       0.01,
       new Vector(Math.random()*canvasWidth,
-      canvasHeight + 300),
+      -100),
       canvasWidth,
       canvasHeight));
   };

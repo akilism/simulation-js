@@ -12,6 +12,7 @@ var Mover = function(ShapeType, shapeOpts, mass, G, initialPosition, width, heig
 
 Mover.prototype.update = function() {
   this.velocity = this.velocity.add(this.acceleration);
+  this.velocity = this.velocity.limit(30);
   this.position = this.position.add(this.velocity);
   this.acceleration = this.acceleration.multiply(0);
   this.shape.setPosition(this.position);
@@ -23,7 +24,7 @@ Mover.prototype.checkEdges = function() {
   else if(this.position.x < 0) { this.position.x = 0;  this.velocity.x *= -1; }
 
   if(this.position.y > this.worldHeight) { this.position.y = this.worldHeight; this.velocity.y *= -1; }
-  // else if(this.position.y < 0) { this.position.y = this.worldHeight; }
+  else if(this.position.y < -1000) { this.position.y = 0; this.velocity.y *= -1; }
 };
 
 Mover.prototype.applyForce = function(force) {
