@@ -127,8 +127,8 @@ var cnvs = (function() {
     var damping = 0.995;
 
     var update = function() {
-      var gravity = 0.01;
-      aAcceleration = (-1 * gravity) * Math.sin(angle);
+      var gravity = 0.4;
+      aAcceleration = (-1 * gravity / armLength) * Math.sin(angle);
       aVelocity += aAcceleration;
       angle += aVelocity;
       // aVelocity *= this.damping;
