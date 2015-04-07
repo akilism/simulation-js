@@ -56,7 +56,7 @@
       document.addEventListener('visibilitychange', start, false);
     } else {
       cnvs.redraw();
-      setTimeout(selectCanvas, 5000);
+      // setTimeout(selectCanvas, 5000);
     }
   }
 })();

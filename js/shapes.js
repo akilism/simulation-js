@@ -12,11 +12,13 @@ var interpolater = (function(currMin, currMax, otherMin, otherMax) {
 });
 
 var Shape = function(opts) {
-  this.color = opts.color || 'rgba(100,100,100,0)';
+  this.color = opts.color || 'rgba(100,100,100,1)';
   this.position = null;
+  this.angle = null;
 };
 
-Shape.prototype.setPosition = function(position) {
+Shape.prototype.setPosition = function(position, angle) {
+  this.angle = angle || 0;
   this.position = position.get();
 };
 
@@ -26,6 +28,26 @@ Shape.prototype.setAlpha = function(alpha, color) {
     colorParts[3] = alpha + ')';
     return colorParts.join(',');
 };
+
+var Rectangle = function(opts) {
+  Shape.call(this, opts);
+  this.h = opts.h;
+  this.w = opts.w;
+  // this.canvasWidth = opts.canvasWidth;
+};
+
+Rectangle.prototype = Object.create(Shape.prototype);
+Rectangle.prototype.constructor = Rectangle;
+
+Rectangle.prototype.draw = function(ctx, alpha) {
+  ctx.save();
+  ctx.translate(this.position.x, this.position.y);
+  ctx.rotate(this.angle);
+  ctx.fillStyle = (alpha) ? this.setAlpha(alpha, this.color) : this.color;
+  ctx.fillRect(0, 0, this.w, this.h);
+  ctx.restore();
+};
+
 
 
 var Circle = function(opts) {
@@ -42,6 +64,17 @@ Circle.prototype.draw = function(ctx, alpha) {
   ctx.arc(this.position.x, this.position.y, this.r, 0, this.endAngle, false);
   ctx.fillStyle = (alpha) ? this.setAlpha(alpha, this.color) : this.color;
   ctx.fill();
+};
+
+Circle.prototype.drawAngle = function(ctx, alpha) {
+  ctx.save();
+  // ctx.translate(this.position.x, this.position.y);
+  ctx.rotate(this.angle);
+  ctx.beginPath();
+  ctx.arc(this.position.x, this.position.y, this.r, 0, this.endAngle, false);
+  ctx.fillStyle = (alpha) ? this.setAlpha(alpha, this.color) : this.color;
+  ctx.fill();
+  ctx.restore();
 };
 
 Circle.prototype.hit = function(x, y) {
