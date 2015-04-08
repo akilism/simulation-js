@@ -331,6 +331,14 @@ var cnvs = (function() {
     pendulums.forEach(function(pendulum) { pendulum.draw(ctx); });
     springs.forEach(function(spring) { spring.draw(ctx); });
     vehicles.forEach(function(vehicle) { vehicle.draw(ctx); });
+
+    if(moveX && moveY) {
+      ctx.beginPath();
+      ctx.arc(moveX, moveY, 20, 0, Math.PI*2, false);
+      ctx.fillStyle = 'rgba(0,0,0, 0.5)';
+      ctx.fill();
+    }
+
     counter++;
   };
 
@@ -360,6 +368,7 @@ var cnvs = (function() {
     moveX = evt.clientX;
     moveY = evt.clientY;
     // console.log('move', moveX, moveY);
+
   };
 
   var redraw = function() {

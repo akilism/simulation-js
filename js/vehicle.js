@@ -1,5 +1,15 @@
-//steering force = desired velocity - current velocity
+var interpolater = (function(currMin, currMax, otherMin, otherMax) {
+  var left = currMax - currMin;
+  var right = otherMax - otherMin;
 
+  var scale = right / left;
+
+  var getVal = function(val) {
+    return otherMin + (val - currMin) * scale;
+  };
+
+  return getVal;
+});
 
 var Vehicle = function(position, shapeType, shapeOpts) {
   this.position = position.get();
@@ -7,15 +17,22 @@ var Vehicle = function(position, shapeType, shapeOpts) {
   this.acceleration = new Vector(0, 0);
   this.maxSpeed = 4;
   this.maxForce = 0.1;
-  this.mass = 3;
   this.shape = new shapeType(shapeOpts);
   this.shape.setPosition(this.position);
 };
 
 Vehicle.prototype.seek = function(target) {
   var rawDesired = target.subtract(this.position);
+  var d = rawDesired.magnitude();
   var normalizedDesired = rawDesired.normalize();
-  var desiredVelocity = normalizedDesired.multiply(this.maxSpeed);
+  var desiredVelocity;
+  if(d < 100) {
+    //scale the velocity down depending on distance to target.
+    var vScaler = interpolater(0, 100, 0, this.maxSpeed);
+    desiredVelocity = normalizedDesired.multiply(vScaler(d));
+  } else{
+    desiredVelocity = normalizedDesired.multiply(this.maxSpeed);
+  }
   var steerForce = desiredVelocity.subtract(this.velocity);
   this.applyForce(steerForce.limit(this.maxForce));
 };
@@ -29,7 +46,7 @@ Vehicle.prototype.flee = function(target) {
 };
 
 Vehicle.prototype.applyForce = function(force) {
-  this.acceleration = this.acceleration.add(force.divide(this.mass));
+  this.acceleration = this.acceleration.add(force);
 };
 
 Vehicle.prototype.draw = function(ctx) {
