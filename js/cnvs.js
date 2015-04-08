@@ -89,7 +89,11 @@ var cnvs = (function() {
   };
 
   var addVehicle = function() {
-    vehicles.push(new Vehicle(new Vector(canvasWidth - 100, canvasHeight - 100), Triangle, {w: 15, h:30, color: getColor(true)}));
+    vehicles.push(new Vehicle(
+      new Vector(canvasWidth/2, canvasHeight/2),
+      Triangle,
+      {w: 15, h:30, color: getColor(true)}
+    ));
   };
 
   var getColor = function(isBlack) {
@@ -396,6 +400,7 @@ var cnvs = (function() {
     var x = moveX || canvasWidth/2;
     var y = moveY || canvasHeight/2;
     vehicle.seek(new Vector(x, y));
+    // vehicle.flee(new Vector(x, y));
     vehicle.update();
   };
 
