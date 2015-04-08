@@ -54,14 +54,11 @@ var cnvs = (function() {
       yScaler = interpolater(0, 1, 0, 600);
       rScaler = interpolater(10, 50, Math.min(75, canvasWidth/8), Math.max(15, canvasWidth/24));
       alphaScaler = interpolater(0, 1, 0, 255);
-      // particleSystems.push(new ParticleSystem(new Vector(canvasWidth/1.8, 100), canvasWidth, canvasHeight));
+      addParticleSystem(canvasWidth/2, canvasHeight/2);
       // addRepeller();
       // addOscillator();
-      addMover();
+      // addMover();
       // addCircle();
-      // addPendulum();
-      // addPendulum();
-      // addPendulum();
       // addPendulum();
       // addWave();
       // addSpring();
@@ -72,6 +69,13 @@ var cnvs = (function() {
 
   var addWave = function() {
     waves.push(waveMaker(0.15, canvasHeight/4, canvasHeight/2));
+  };
+
+  var addParticleSystem = function(x, y) {
+    particleSystems.push(new ParticleSystem(
+      new Vector(x, y),
+      canvasWidth,
+      canvasHeight));
   };
 
   var addPendulum = function () {
@@ -154,7 +158,7 @@ var cnvs = (function() {
       aVelocity += aAcceleration;
       aVelocity = Math.min(1.5, aVelocity);
       angle += aVelocity;
-      aVelocity = damping * aVelocity;
+      // aVelocity = damping * aVelocity;
     };
 
     var drawArm = function(ctx, position) {
@@ -191,21 +195,20 @@ var cnvs = (function() {
     var Spring = function(x, y, l) {
       this.anchor = new Vector(x, y);
       this.restLength = l;
-      this.currentLength = null;
-      this.k = 0.1; //some constant how rigid is this spring?
+      this.k = 0.1; //how rigid is this spring?
     };
 
     Spring.prototype.connect = function(bob) {
       var force = bob.position.subtract(this.anchor);
-      this.currentLength = force.magnitude();
-      var x = this.restLength - this.currentLength;
+      var currentLength = force.magnitude();
+      var x = currentLength - this.restLength;
       var normForce = force.normalize();
       return normForce.multiply(-1 * this.k * x);
     };
 
     Spring.prototype.draw = function(ctx, bobPos) {
       ctx.fillStyle = 'rgba(0,0,0,1)';
-      ctx.fillRect(this.anchor.x, this.anchor.y, 10, 10);
+      ctx.fillRect(this.anchor.x-5, this.anchor.y-5, 10, 10);
 
       ctx.beginPath();
       ctx.moveTo(this.anchor.x, this.anchor.y);
@@ -214,18 +217,19 @@ var cnvs = (function() {
     };
 
 
-    var spring = new Spring(canvasWidth/2, 140, 160);
+    var spring = new Spring(canvasWidth/2, 40, 240);
     var bob = new Mover(Circle,
       {r: 25 , color: getColor(true)},
-      10000,
+      12,
       0.01,
-      new Vector(spring.anchor.x, 300),
+      new Vector(canvasWidth/2, 40),
       canvasWidth,
       canvasHeight);
 
     var update = function() {
-      var gravity = new Vector(0.1, 0.01);
+      var gravity = new Vector(0, 0.1);
       bob.applyForce(gravity);
+
       var springForce = spring.connect(bob);
       bob.applyForce(springForce);
       bob.update();
@@ -253,7 +257,7 @@ var cnvs = (function() {
     attractors.push(new Attractor(Circle,
       {r: mass, color: '#00FF00'},
       mass,
-      1,
+      10,
       new Vector(canvasWidth/2, canvasHeight-100)
     ));
   };
@@ -285,17 +289,17 @@ var cnvs = (function() {
   };
 
   var addMover = function() {
-    var mass = Math.max(10, Math.round(Math.random() * 20));
+    var mass = Math.max(10, Math.round(Math.random() * 25));
     // Circle,
     //   {r: rScaler(mass) , color: getColor(true)}
     // Mover(Rectangle,
     //   {w: 30, h: 15, color: getColor(true)}
     movers.push(new Mover(Circle,
-      {r: rScaler(mass) , color: getColor(true)},
+      {r: mass , color: getColor(true)},
       mass,
-      0.01,
-      new Vector(10,
-      20),
+      0.1,
+      new Vector(Math.random() * canvasWidth,
+      Math.random() * canvasHeight),
       canvasWidth,
       canvasHeight));
   };
@@ -308,7 +312,7 @@ var cnvs = (function() {
   var render = function() {
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     particleSystems.forEach(function(particleSystem) { particleSystem.draw(ctx); });
-    // repellers.forEach(function(repeller) { repeller.draw(ctx); });
+    repellers.forEach(function(repeller) { repeller.draw(ctx); });
     attractors.forEach(function(attractor) { attractor.draw(ctx); });
     movers.forEach(function(mover) { mover.draw(ctx); });
     oscillators.forEach(function(oscillator) { oscillator.draw(ctx); });
@@ -365,9 +369,9 @@ var cnvs = (function() {
     //   addAttractor();
     // }
 
-    // if(movers.length < 10 && counter % 30 === 0) {
-    //   addMover();
-    // }
+    if(movers.length < 20){ //} && counter % 10 === 0) {
+      addMover();
+    }
 
     // if(oscillators.length < 10 && counter % 30 === 0) {
     //   addOscillator();
@@ -415,11 +419,17 @@ var cnvs = (function() {
       //   mover.applyForce(attractor.comeToMe(mover));
       // });
 
-      mover.applyForce(new Vector(1, 0.5)); //wind
+      movers.forEach(function(otherMover) {
+        if(mover !== otherMover) {
+          otherMover.applyForce(mover.comeHere(otherMover));
+        }
+      });
+      // mover.applyForce(new Vector(0.25, 0.0)); //wind
     } else {
       var friction = mover.getFriction(1, 10);
       mover.applyForce(friction);
     }
+    // mover.applyForce(new Vector(0.0, 0.1)); //gravity
     mover.update();
   };
 

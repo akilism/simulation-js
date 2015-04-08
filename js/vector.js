@@ -37,8 +37,9 @@ Vector.prototype.normalize = function() {
     var mag = this.magnitude();
     if(mag > 0) {
       this.normalized = this.divide(mag);
+    } else {
+      this.normalized = this.get();
     }
-    this.normalized = this.get();
   }
 
   return this.normalized.get();
