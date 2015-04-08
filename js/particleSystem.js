@@ -57,7 +57,7 @@ ParticleSystem.prototype.applyRepellers = function(repellers) {
 ParticleSystem.prototype.update = function() {
   var ps = this;
   this.particles.forEach(function(particle, i) {
-    var gravity = new Vector(0, 0.1);
+    var gravity = new Vector(0, 0.05);
     particle.applyForce(gravity.multiply(particle.mass));
     // particle.applyForce(new Vector(0.001, 0));
     particle.update();

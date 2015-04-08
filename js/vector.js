@@ -23,17 +23,17 @@ Vector.prototype.divide = function(n) {
 };
 
 Vector.prototype.magnitudeSqared = function() {
-  if(!this.magSquared) { this.magSquared = (this.x * this.x) + (this.y * this.y); }
+  if(this.magSquared === null) { this.magSquared = (this.x * this.x) + (this.y * this.y); }
   return this.magSquared;
 };
 
 Vector.prototype.magnitude = function() {
-  if(!this.mag) { this.mag = Math.sqrt(this.magnitudeSqared()); }
+  if(this.mag === null) { this.mag = Math.sqrt(this.magnitudeSqared()); }
   return this.mag;
 };
 
 Vector.prototype.normalize = function() {
-  if(!this.normalized) {
+  if(this.normalized === null) {
     var mag = this.magnitude();
     if(mag > 0) {
       this.normalized = this.divide(mag);
@@ -45,8 +45,7 @@ Vector.prototype.normalize = function() {
 };
 
 Vector.prototype.limit = function(max) {
-  // console.log(this.magnitude());
-  if(this.magnitudeSqared() > max * max) {
+  if(this.magnitude() > max) {
     var norm = this.normalize();
     return norm.multiply(max);
   }

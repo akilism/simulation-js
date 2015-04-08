@@ -1,14 +1,14 @@
 var Particle = function(ShapeType, shapeOpts, position, mass) {
   this.acceleration = new Vector(0, 0);
   var dir = (Math.random() > 0.50) ? 1 : -1;
-  this.velocity = new Vector(dir*(Math.random()*10), 0);
+  this.velocity = new Vector(dir*(Math.random()), dir*(Math.random()));
   this.position = position.get();
 
-  this.aVelocity = 0.05;
+  this.aVelocity = 0.025;
   this.aAcceleration = Math.random();
   this.angle = Math.PI / 2;
 
-  this.timeToLive = 1.5;
+  this.timeToLive = 1;
   this.mass = mass;
   this.shape = new ShapeType(shapeOpts);
   this.shape.setPosition(this.position, this.angle);

@@ -1,7 +1,7 @@
 var Oscillator = function(ShapeType, shapeOpts, angle, velocity, amplitude, initialPosition, canvasWidth, canvasHeight) {
   this.angle = angle;
   this.velocity = velocity;
-  this.amplitude = amplitude;
+  this.amplitude = amplitude; //distance from center to either extreme.
   this.shape = new ShapeType(shapeOpts);
   this.position = initialPosition;
   this.canvasWidth = canvasWidth;

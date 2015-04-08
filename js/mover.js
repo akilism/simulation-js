@@ -13,7 +13,7 @@ var Mover = function(ShapeType, shapeOpts, mass, G, initialPosition, width, heig
 Mover.prototype.update = function() {
   var angle = Math.atan2(this.velocity.y, this.velocity.x);
   this.velocity = this.velocity.add(this.acceleration);
-  // this.velocity = this.velocity.limit(50);
+  this.velocity = this.velocity.limit(10);
   this.position = this.position.add(this.velocity);
   this.acceleration = this.acceleration.multiply(0);
   this.shape.setPosition(this.position, angle);

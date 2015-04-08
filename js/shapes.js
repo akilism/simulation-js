@@ -59,19 +59,19 @@ var Circle = function(opts) {
 Circle.prototype = Object.create(Shape.prototype);
 Circle.prototype.constructor = Circle;
 
-Circle.prototype.draw = function(ctx, alpha) {
+Circle.prototype.draw2 = function(ctx, alpha) {
   ctx.beginPath();
   ctx.arc(this.position.x, this.position.y, this.r, 0, this.endAngle, false);
   ctx.fillStyle = (alpha) ? this.setAlpha(alpha, this.color) : this.color;
   ctx.fill();
 };
 
-Circle.prototype.drawAngle = function(ctx, alpha) {
+Circle.prototype.draw = function(ctx, alpha) {
   ctx.save();
-  // ctx.translate(this.position.x, this.position.y);
+  ctx.translate(this.position.x, this.position.y);
   ctx.rotate(this.angle);
   ctx.beginPath();
-  ctx.arc(this.position.x, this.position.y, this.r, 0, this.endAngle, false);
+  ctx.arc(0, 0, this.r, 0, this.endAngle, false);
   ctx.fillStyle = (alpha) ? this.setAlpha(alpha, this.color) : this.color;
   ctx.fill();
   ctx.restore();

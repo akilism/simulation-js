@@ -13,6 +13,9 @@ var cnvs = (function() {
     repellers = [],
     particleSystems = [],
     basicShapes = [],
+    waves = [],
+    pendulums = [],
+    springs = [],
     clickX,
     clickY,
     moveX,
@@ -23,8 +26,6 @@ var cnvs = (function() {
     alphaScaler,
     tx = 0,
     ty = 10000,
-    wave,
-    pendulum,
     mouseClicked = false;
 
   var interpolater = (function(currMin, currMax, otherMin, otherMax) {
@@ -51,19 +52,34 @@ var cnvs = (function() {
       // canvas.addEventListener('mousemove', onMouseMove);
       xScaler = interpolater(0, 1, 0, 600);
       yScaler = interpolater(0, 1, 0, 600);
-      rScaler = interpolater(100, 400, Math.min(75, canvasWidth/8), Math.max(15, canvasWidth/24));
+      rScaler = interpolater(10, 50, Math.min(75, canvasWidth/8), Math.max(15, canvasWidth/24));
       alphaScaler = interpolater(0, 1, 0, 255);
-      // particleSystems.push(new ParticleSystem(new Vector(canvasWidth/1.8, 150), canvasWidth, canvasHeight));
+      // particleSystems.push(new ParticleSystem(new Vector(canvasWidth/1.8, 100), canvasWidth, canvasHeight));
       // addRepeller();
       // addOscillator();
-      // addMover();
+      addMover();
       // addCircle();
-      // wave = waveMaker(0.25, canvasHeight/6, canvasHeight/2);
-      wave = waveMaker(0.15, canvasHeight/4, canvasHeight/2);
-      pendulum = pendulumMaker();
+      // addPendulum();
+      // addPendulum();
+      // addPendulum();
+      // addPendulum();
+      // addWave();
+      // addSpring();
     } else {
       isCanvasEnabled = false;
     }
+  };
+
+  var addWave = function() {
+    waves.push(waveMaker(0.15, canvasHeight/4, canvasHeight/2));
+  };
+
+  var addPendulum = function () {
+    pendulums.push(pendulumMaker());
+  };
+
+  var addSpring = function() {
+    springs.push(springMaker());
   };
 
   var getColor = function(isBlack) {
@@ -120,18 +136,25 @@ var cnvs = (function() {
 
   var pendulumMaker = function() {
     var origin = new Vector(canvasWidth/2, 40);
-    var armLength = 250;
-    var angle = Math.PI / 4;
+    var armLength = Math.max(64, Math.floor(Math.random() * 200));
+    var angle =  Math.PI / 2;
     var aVelocity = 0.0;
     var aAcceleration = 0.0;
     var damping = 0.995;
+    var newPosition = null;
+
+    var setNewPosition = function() {
+      var position = new Vector(armLength * Math.sin(angle), armLength * Math.cos(angle));
+      newPosition = position.add(origin);
+    };
 
     var update = function() {
       var gravity = 0.4;
       aAcceleration = (-1 * gravity / armLength) * Math.sin(angle);
       aVelocity += aAcceleration;
+      aVelocity = Math.min(1.5, aVelocity);
       angle += aVelocity;
-      // aVelocity *= this.damping;
+      aVelocity = damping * aVelocity;
     };
 
     var drawArm = function(ctx, position) {
@@ -147,13 +170,70 @@ var cnvs = (function() {
       ctx.fillStyle = 'rgba(0,0,0,0.25)';
       ctx.stroke();
       ctx.fill();
-    }
+    };
 
     var draw = function(ctx) {
-      var position = new Vector(armLength * Math.sin(angle), armLength * Math.cos(angle));
-      var newPosition = position.add(origin);
       drawArm(ctx, {origin: origin, new: newPosition});
       drawBob(ctx, newPosition);
+      setNewPosition();
+    };
+
+    setNewPosition();
+    return {
+      draw:draw,
+      update:update,
+      getNewPostion: function () { return newPosition.get(); },
+      setOrigin: function(o) { origin = o.get(); }
+    };
+  };
+
+  var springMaker = function() {
+    var Spring = function(x, y, l) {
+      this.anchor = new Vector(x, y);
+      this.restLength = l;
+      this.currentLength = null;
+      this.k = 0.1; //some constant how rigid is this spring?
+    };
+
+    Spring.prototype.connect = function(bob) {
+      var force = bob.position.subtract(this.anchor);
+      this.currentLength = force.magnitude();
+      var x = this.restLength - this.currentLength;
+      var normForce = force.normalize();
+      return normForce.multiply(-1 * this.k * x);
+    };
+
+    Spring.prototype.draw = function(ctx, bobPos) {
+      ctx.fillStyle = 'rgba(0,0,0,1)';
+      ctx.fillRect(this.anchor.x, this.anchor.y, 10, 10);
+
+      ctx.beginPath();
+      ctx.moveTo(this.anchor.x, this.anchor.y);
+      ctx.lineTo(bobPos.x, bobPos.y);
+      ctx.stroke();
+    };
+
+
+    var spring = new Spring(canvasWidth/2, 140, 160);
+    var bob = new Mover(Circle,
+      {r: 25 , color: getColor(true)},
+      10000,
+      0.01,
+      new Vector(spring.anchor.x, 300),
+      canvasWidth,
+      canvasHeight);
+
+    var update = function() {
+      var gravity = new Vector(0.1, 0.01);
+      bob.applyForce(gravity);
+      var springForce = spring.connect(bob);
+      bob.applyForce(springForce);
+      bob.update();
+    };
+
+    var draw = function(ctx) {
+      bob.draw(ctx);
+      spring.draw(ctx, bob.position);
     };
 
     return {
@@ -205,11 +285,13 @@ var cnvs = (function() {
   };
 
   var addMover = function() {
-    var mass = Math.max(30, Math.round(Math.random() * 40));
+    var mass = Math.max(10, Math.round(Math.random() * 20));
     // Circle,
-    //   {r: rScaler(mass) , color: getColor(true)},
-    movers.push(new Mover(Rectangle,
-      {w: 30, h: 15, color: getColor(true)},
+    //   {r: rScaler(mass) , color: getColor(true)}
+    // Mover(Rectangle,
+    //   {w: 30, h: 15, color: getColor(true)}
+    movers.push(new Mover(Circle,
+      {r: rScaler(mass) , color: getColor(true)},
       mass,
       0.01,
       new Vector(10,
@@ -226,13 +308,14 @@ var cnvs = (function() {
   var render = function() {
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     particleSystems.forEach(function(particleSystem) { particleSystem.draw(ctx); });
-    repellers.forEach(function(repeller) { repeller.draw(ctx); });
+    // repellers.forEach(function(repeller) { repeller.draw(ctx); });
     attractors.forEach(function(attractor) { attractor.draw(ctx); });
     movers.forEach(function(mover) { mover.draw(ctx); });
     oscillators.forEach(function(oscillator) { oscillator.draw(ctx); });
     basicShapes.forEach(function(shape) { shape.shape.drawAngle(ctx); });
-    // wave.draw(ctx);
-    pendulum.draw(ctx);
+    waves.forEach(function(wave) { wave.draw(ctx); });
+    pendulums.forEach(function(pendulum) { pendulum.draw(ctx); });
+    springs.forEach(function(spring) { spring.draw(ctx); });
     counter++;
   };
 
@@ -273,7 +356,7 @@ var cnvs = (function() {
 
   var update = function(delta) {
     // if(counter % 10 === 0) {
-    //   particleSystems[0].addParticles(25);
+    //   particleSystems[0].addParticles(50);
     // }
     // particleSystems[0].applyRepellers(repellers);
     // particleSystems[0].update();
@@ -286,20 +369,35 @@ var cnvs = (function() {
     //   addMover();
     // }
 
-    // if(oscillators.length < 10 && counter % 60 === 0) {
+    // if(oscillators.length < 10 && counter % 30 === 0) {
     //   addOscillator();
     // }
 
     movers.forEach(updateMover);
     basicShapes.forEach(updateBasicShape);
-    oscillators.forEach(function(o) {
-      o.oscillate();
-    });
-    pendulum.update();
+    oscillators.forEach(updateOscillator);
+    pendulums.forEach(updatePendulum);
+    springs.forEach(updateSpring);
   };
 
   var updateBasicShape = function(shape) {
     shape.update(shape.shape);
+  };
+
+  var updateOscillator = function(oscillator) {
+    oscillator.oscillate();
+  };
+
+  var updatePendulum = function(pendulum, i) {
+    //wire up previous pendulum to be this ones origin.
+    if(i > 0) {
+      pendulum.setOrigin(pendulums[i-1].getNewPostion());
+    }
+    pendulum.update();
+  };
+
+  var updateSpring = function(spring) {
+    spring.update();
   };
 
   var updateMover = function(mover) {
@@ -317,7 +415,7 @@ var cnvs = (function() {
       //   mover.applyForce(attractor.comeToMe(mover));
       // });
 
-      mover.applyForce(new Vector(0.01, 0.05)); //wind
+      mover.applyForce(new Vector(1, 0.5)); //wind
     } else {
       var friction = mover.getFriction(1, 10);
       mover.applyForce(friction);
