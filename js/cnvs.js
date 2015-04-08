@@ -408,8 +408,8 @@ var cnvs = (function() {
   var updateVehicle = function(vehicle) {
     var x = moveX || canvasWidth/2;
     var y = moveY || canvasHeight/2;
-    vehicle.seek(new Vector(x, y));
-    // vehicle.flee(new Vector(x, y));
+    // vehicle.seek(new Vector(x, y));
+    vehicle.flee(new Vector(x, y));
     vehicle.update();
   };
 
