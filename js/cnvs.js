@@ -16,6 +16,7 @@ var cnvs = (function() {
     waves = [],
     pendulums = [],
     springs = [],
+    vehicles = [],
     clickX,
     clickY,
     moveX,
@@ -49,12 +50,12 @@ var cnvs = (function() {
       canvasWidth = canvas.width;
       isCanvasEnabled = true;
       canvas.addEventListener('click', onClick);
-      // canvas.addEventListener('mousemove', onMouseMove);
+      canvas.addEventListener('mousemove', onMouseMove);
       xScaler = interpolater(0, 1, 0, 600);
       yScaler = interpolater(0, 1, 0, 600);
       rScaler = interpolater(10, 50, Math.min(75, canvasWidth/8), Math.max(15, canvasWidth/24));
       alphaScaler = interpolater(0, 1, 0, 255);
-      addParticleSystem(canvasWidth/2, canvasHeight/2);
+      // addParticleSystem(canvasWidth/2, canvasHeight/2);
       // addRepeller();
       // addOscillator();
       // addMover();
@@ -62,6 +63,7 @@ var cnvs = (function() {
       // addPendulum();
       // addWave();
       // addSpring();
+      addVehicle();
     } else {
       isCanvasEnabled = false;
     }
@@ -86,6 +88,10 @@ var cnvs = (function() {
     springs.push(springMaker());
   };
 
+  var addVehicle = function() {
+    vehicles.push(new Vehicle(new Vector(canvasWidth - 100, canvasHeight - 100), Triangle, {w: 15, h:30, color: getColor(true)}));
+  };
+
   var getColor = function(isBlack) {
       var r = Math.floor(Math.random() * 256),
       g = Math.floor(Math.random() * 256),
@@ -98,14 +104,14 @@ var cnvs = (function() {
       return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
   };
 
-  var r = 75;
+  var r = 175;
   var theta = 0;
   var polarUpdate = function(shape) {
     var x = (r * Math.cos(theta)) + (canvasWidth/2);
     var y = (r * Math.sin(theta)) + (canvasHeight/2);
     var position = new Vector(x, y);
     shape.setPosition(position);
-    theta += 0.01;
+    theta += 0.1;
   };
 
   var harmonicUpdate = function(shape) {
@@ -247,7 +253,7 @@ var cnvs = (function() {
   };
 
   var addCircle = function() {
-    basicShapes.push({ update: harmonicUpdate,
+    basicShapes.push({ update: polarUpdate,
       shape: new Circle({ r: 50, color: getColor() })});
     basicShapes[basicShapes.length-1].shape.setPosition(new Vector(canvasWidth/2, canvasHeight/2), 0);
   };
@@ -279,7 +285,7 @@ var cnvs = (function() {
   };
 
   var addRepeller = function() {
-    var mass = 20;
+    var mass = 40;
     repellers.push(new Repeller(Circle,
       {r: mass, color: 'rgba(140, 140, 0, .5)'},
       mass,
@@ -316,10 +322,11 @@ var cnvs = (function() {
     attractors.forEach(function(attractor) { attractor.draw(ctx); });
     movers.forEach(function(mover) { mover.draw(ctx); });
     oscillators.forEach(function(oscillator) { oscillator.draw(ctx); });
-    basicShapes.forEach(function(shape) { shape.shape.drawAngle(ctx); });
+    basicShapes.forEach(function(shape) { shape.shape.draw(ctx); });
     waves.forEach(function(wave) { wave.draw(ctx); });
     pendulums.forEach(function(pendulum) { pendulum.draw(ctx); });
     springs.forEach(function(spring) { spring.draw(ctx); });
+    vehicles.forEach(function(vehicle) { vehicle.draw(ctx); });
     counter++;
   };
 
@@ -369,9 +376,9 @@ var cnvs = (function() {
     //   addAttractor();
     // }
 
-    if(movers.length < 20){ //} && counter % 10 === 0) {
-      addMover();
-    }
+    // if(movers.length < 20){ //} && counter % 10 === 0) {
+    //   addMover();
+    // }
 
     // if(oscillators.length < 10 && counter % 30 === 0) {
     //   addOscillator();
@@ -382,6 +389,14 @@ var cnvs = (function() {
     oscillators.forEach(updateOscillator);
     pendulums.forEach(updatePendulum);
     springs.forEach(updateSpring);
+    vehicles.forEach(updateVehicle);
+  };
+
+  var updateVehicle = function(vehicle) {
+    var x = moveX || canvasWidth/2;
+    var y = moveY || canvasHeight/2;
+    vehicle.seek(new Vector(x, y));
+    vehicle.update();
   };
 
   var updateBasicShape = function(shape) {

@@ -49,6 +49,28 @@ Rectangle.prototype.draw = function(ctx, alpha) {
 };
 
 
+var Triangle = function(opts) {
+  Shape.call(this, opts);
+  this.h = opts.h;
+  this.w = opts.w;
+};
+
+Triangle.prototype = Object.create(Shape.prototype);
+Triangle.prototype.constructor = Triangle;
+
+Triangle.prototype.draw = function(ctx, alpha) {
+  ctx.save();
+  ctx.translate(this.position.x, this.position.y);
+  ctx.rotate(this.angle - Math.PI/2);
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(this.w/2, this.h);
+  ctx.lineTo(this.w, 0);
+  ctx.closePath();
+  ctx.fillStyle = (alpha) ? this.setAlpha(alpha, this.color) : this.color;
+  ctx.stroke();
+  ctx.restore();
+};
 
 var Circle = function(opts) {
   Shape.call(this, opts);
