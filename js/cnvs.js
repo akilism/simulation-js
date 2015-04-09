@@ -409,7 +409,9 @@ var cnvs = (function() {
     var x = moveX || canvasWidth/2;
     var y = moveY || canvasHeight/2;
     // vehicle.seek(new Vector(x, y));
-    vehicle.flee(new Vector(x, y));
+    // vehicle.flee(new Vector(x, y));
+
+    vehicle.seek(vehicle.wander(250, 75, counter));
     vehicle.update();
   };
 
