@@ -25,6 +25,7 @@ var cnvs = (function() {
     yScaler,
     rScaler,
     alphaScaler,
+    flowField,
     tx = 0,
     ty = 10000,
     mouseClicked = false;
@@ -64,36 +65,14 @@ var cnvs = (function() {
       // addWave();
       // addSpring();
       addVehicle();
+      addVehicle(30, 0);
+      addVehicle(60, 0);
+      addVehicle(90, 0);
+      addVehicle(120, 0);
+      flowField = new FlowField(canvasWidth, canvasHeight);
     } else {
       isCanvasEnabled = false;
     }
-  };
-
-  var addWave = function() {
-    waves.push(waveMaker(0.15, canvasHeight/4, canvasHeight/2));
-  };
-
-  var addParticleSystem = function(x, y) {
-    particleSystems.push(new ParticleSystem(
-      new Vector(x, y),
-      canvasWidth,
-      canvasHeight));
-  };
-
-  var addPendulum = function () {
-    pendulums.push(pendulumMaker());
-  };
-
-  var addSpring = function() {
-    springs.push(springMaker());
-  };
-
-  var addVehicle = function() {
-    vehicles.push(new Vehicle(
-      new Vector(canvasWidth/2, canvasHeight/2),
-      Triangle,
-      {w: 15, h:30, color: getColor(true)}
-    ));
   };
 
   var getColor = function(isBlack) {
@@ -314,6 +293,35 @@ var cnvs = (function() {
       canvasHeight));
   };
 
+  var addWave = function() {
+    waves.push(waveMaker(0.15, canvasHeight/4, canvasHeight/2));
+  };
+
+  var addParticleSystem = function(x, y) {
+    particleSystems.push(new ParticleSystem(
+      new Vector(x, y),
+      canvasWidth,
+      canvasHeight));
+  };
+
+  var addPendulum = function () {
+    pendulums.push(pendulumMaker());
+  };
+
+  var addSpring = function() {
+    springs.push(springMaker());
+  };
+
+  var addVehicle = function(xOff, yOff) {
+    var x = (xOff) ? canvasWidth/2 + xOff : canvasWidth/2;
+    var y = (yOff) ? canvasHeight/2 + yOff : canvasHeight/2;
+    vehicles.push(new Vehicle(
+      new Vector(x, y),
+      Triangle,
+      {w: 15, h:30, color: getColor(true)}
+    ));
+  };
+
   var tick = function(delta) {
     update(delta);
     redraw();
@@ -410,8 +418,9 @@ var cnvs = (function() {
     var y = moveY || canvasHeight/2;
     // vehicle.seek(new Vector(x, y));
     // vehicle.flee(new Vector(x, y));
-
-    vehicle.seek(vehicle.wander(250, 75, counter));
+    // vehicle.seek(vehicle.wander(250, 75, counter));
+    var flowForce = flowField.lookup(vehicle.position);
+    vehicle.follow(flowForce);
     vehicle.update();
   };
 

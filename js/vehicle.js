@@ -70,6 +70,12 @@ Vehicle.prototype.update = function() {
   this.shape.setPosition(this.position, angle);
 };
 
+Vehicle.prototype.follow = function(desired) {
+  var dVel = desired.multiply(this.maxSpeed);
+  var steerForce = dVel.subtract(this.velocity);
+  this.applyForce(steerForce);
+};
+
 Vehicle.prototype.seek = function(target) {
   var rawDesired = target.subtract(this.position);
   var d = rawDesired.magnitude();
@@ -106,10 +112,10 @@ Vehicle.prototype.wander = function(l, r, counter) {
   this.l = l;
   var scaled = this.velocity.multiply(l);
   this.futurePosition = this.position.add(this.velocity.multiply(l));
-  if(!this.theta || counter % 30 === 0) {
+  if(!this.theta || Math.random() > 0.90) {
     this.theta = Math.random() * 360;
   } else {
-    this.theta += 0.01;
+    // this.theta += 0.01;
   }
   var x = (r * Math.cos(this.theta)) + this.futurePosition.x;
   var y = (r * Math.sin(this.theta)) + this.futurePosition.y;
