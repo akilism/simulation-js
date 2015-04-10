@@ -26,6 +26,7 @@ var cnvs = (function() {
     rScaler,
     alphaScaler,
     flowField,
+    path,
     tx = 0,
     ty = 10000,
     mouseClicked = false;
@@ -64,12 +65,20 @@ var cnvs = (function() {
       // addPendulum();
       // addWave();
       // addSpring();
-      addVehicle();
-      addVehicle(30, 0);
-      addVehicle(60, 0);
-      addVehicle(90, 0);
-      addVehicle(120, 0);
-      flowField = new FlowField(canvasWidth, canvasHeight);
+      // path = new Path(30);
+      // path.addPoint(new Vector(30, 930));
+      // path.addPoint(new Vector(430, 430));
+      // path.addPoint(new Vector(630, 490));
+      // path.addPoint(new Vector(740, 220));
+      // for(var i = 0; i < 250; i++) {
+
+      // }
+
+      // addVehicle(30, 0);
+      // addVehicle(60, 0);
+
+      // addVehicle(120, 0);
+      // flowField = new FlowField(canvasWidth, canvasHeight);
     } else {
       isCanvasEnabled = false;
     }
@@ -315,10 +324,12 @@ var cnvs = (function() {
   var addVehicle = function(xOff, yOff) {
     var x = (xOff) ? canvasWidth/2 + xOff : canvasWidth/2;
     var y = (yOff) ? canvasHeight/2 + yOff : canvasHeight/2;
+    // Triangle,
+    //   {w: 15, h:30, color: getColor(true)}
     vehicles.push(new Vehicle(
       new Vector(x, y),
-      Triangle,
-      {w: 15, h:30, color: getColor(true)}
+      Circle,
+      {r: 5 , color: getColor(true)}
     ));
   };
 
@@ -338,14 +349,15 @@ var cnvs = (function() {
     waves.forEach(function(wave) { wave.draw(ctx); });
     pendulums.forEach(function(pendulum) { pendulum.draw(ctx); });
     springs.forEach(function(spring) { spring.draw(ctx); });
+    if(path) { path.draw(ctx); }
     vehicles.forEach(function(vehicle) { vehicle.draw(ctx); });
 
-    if(moveX && moveY) {
-      ctx.beginPath();
-      ctx.arc(moveX, moveY, 20, 0, Math.PI*2, false);
-      ctx.fillStyle = 'rgba(0,0,0, 0.5)';
-      ctx.fill();
-    }
+    // if(moveX && moveY) {
+    //   ctx.beginPath();
+    //   ctx.arc(moveX, moveY, 20, 0, Math.PI*2, false);
+    //   ctx.fillStyle = 'rgba(0,0,0, 0.5)';
+    //   ctx.fill();
+    // }
 
     counter++;
   };
@@ -405,6 +417,12 @@ var cnvs = (function() {
     //   addOscillator();
     // }
 
+    if(vehicles.length < 300 && counter % 10 === 0) {
+      for(var i = 0; i < 10; i++) {
+        addVehicle(Math.random() * canvasWidth/4, Math.random() * canvasHeight/4);
+      }
+    }
+
     movers.forEach(updateMover);
     basicShapes.forEach(updateBasicShape);
     oscillators.forEach(updateOscillator);
@@ -417,10 +435,15 @@ var cnvs = (function() {
     var x = moveX || canvasWidth/2;
     var y = moveY || canvasHeight/2;
     // vehicle.seek(new Vector(x, y));
+    vehicle.separate(vehicles);
+    vehicle.stayInBounds(20, canvasWidth, canvasHeight);
     // vehicle.flee(new Vector(x, y));
     // vehicle.seek(vehicle.wander(250, 75, counter));
-    var flowForce = flowField.lookup(vehicle.position);
-    vehicle.follow(flowForce);
+    // var flowForce = flowField.lookup(vehicle.position);
+    // vehicle.follow(flowForce);
+    // vehicle.seek(vehicle.followPath(paths[0]));
+    // vehicle.followPath(path);
+    // vehicle.followPathSegments(path);
     vehicle.update();
   };
 

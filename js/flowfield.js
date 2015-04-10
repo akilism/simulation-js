@@ -35,6 +35,9 @@ FlowField.prototype.populateFieldNoise = function() {
   }
 };
 
+FlowField.prototype.populateFieldCenter = function() {
+
+};
 
 FlowField.prototype.populateField = function() {
   for(var x = 0; x < this.cols; x++) {

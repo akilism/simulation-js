@@ -45,12 +45,24 @@ Vector.prototype.normalize = function() {
   return this.normalized.get();
 };
 
+Vector.prototype.distance = function(other) {
+  return Math.sqrt(Math.pow(this.x - other.x, 2) + Math.pow(this.y - other.y, 2));
+};
+
 Vector.prototype.limit = function(max) {
   if(this.magnitude() > max) {
     var norm = this.normalize();
     return norm.multiply(max);
   }
   return new Vector(this.x, this.y);
+};
+
+Vector.prototype.dotProduct = function(other) {
+  return (this.x * other.x) + (this.y * other.y);
+};
+
+Vector.prototype.angleBetween = function(other) {
+  return Math.acos(this.dotProduct(other) / (this.magnitude() * other.magnitude()));
 };
 
 Vector.prototype.get = function() {
