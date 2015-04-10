@@ -13,10 +13,10 @@ var interpolater = (function(currMin, currMax, otherMin, otherMax) {
 
 var Vehicle = function(position, shapeType, shapeOpts) {
   this.position = position.get();
-  this.velocity = new Vector(Math.random(), Math.random());
+  this.velocity = new Vector(0, 0);
   this.acceleration = new Vector(0, 0);
-  this.maxSpeed = 5;
-  this.maxForce = 0.25;
+  this.maxSpeed = 3;
+  this.maxForce = 0.1;
   this.w = (shapeOpts.w) ? shapeOpts.w : shapeOpts.r;
   this.h = (shapeOpts.h) ? shapeOpts.h : shapeOpts.r;
   this.shape = new shapeType(shapeOpts);
@@ -158,7 +158,7 @@ Vehicle.prototype.wander = function(l, r, counter) {
 Vehicle.prototype.stayInBounds = function(wSize, canvasWidth, canvasHeight) {
   var desired, steer, sum = new Vector(0, 0), count = 0;
 
-  if(this.position.x < wSize) {
+  if(this.position.x <= wSize) {
     desired = new Vector(this.maxSpeed, this.velocity.y);
     steer = desired.subtract(this.velocity);
     steer = steer.limit(this.maxForce);
@@ -166,7 +166,7 @@ Vehicle.prototype.stayInBounds = function(wSize, canvasWidth, canvasHeight) {
     count++;
   }
 
-  if(this.position.x > canvasWidth - wSize) {
+  if(this.position.x >= canvasWidth - wSize) {
     desired = new Vector(-this.maxSpeed, this.velocity.y);
     steer = desired.subtract(this.velocity);
     steer = steer.limit(this.maxForce);
@@ -174,7 +174,7 @@ Vehicle.prototype.stayInBounds = function(wSize, canvasWidth, canvasHeight) {
     count++;
   }
 
-  if(this.position.y < wSize) {
+  if(this.position.y <= wSize) {
     desired = new Vector(this.velocity.x, this.maxSpeed);
     steer = desired.subtract(this.velocity);
     steer = steer.limit(this.maxForce);
@@ -182,7 +182,7 @@ Vehicle.prototype.stayInBounds = function(wSize, canvasWidth, canvasHeight) {
     count++;
   }
 
-  if(this.position.y > canvasHeight - wSize) {
+  if(this.position.y >= canvasHeight - wSize) {
     desired = new Vector(this.velocity.x, -this.maxSpeed);
     steer = desired.subtract(this.velocity);
     steer = steer.limit(this.maxForce);
@@ -255,17 +255,17 @@ Vehicle.prototype.getNormalPoint = function(predictPos, a, b) {
   return normalPoint;
 };
 
-Vehicle.prototype.separate = function(vehicles) {
-  var desiredSeparation = 25;
+Vehicle.prototype.group = function(vehicles) {
+  var desiredCohesion = (this.shape.r) ? this.shape.r * 2 : this.shape.w * 2;
   var count = 0;
   var vehicle = this;
 
   var sum = vehicles.map(function(otherVehicle) {
     var dist = vehicle.position.distance(otherVehicle.position);
 
-    if ((dist > 0) && (dist < desiredSeparation)) {
-      var diff = vehicle.position.subtract(otherVehicle.position);
-      return diff.normalize();
+    if (dist > desiredCohesion) {
+      var diff = vehicle.position.subtract(otherVehicle.position).multiply(-1);
+      return diff.normalize().divide(dist);
     }
 
     return false;
@@ -278,7 +278,36 @@ Vehicle.prototype.separate = function(vehicles) {
 
   if(count > 0) {
     var avg = sum.divide(count);
-    var steer = avg.subtract(this.velocity);
+    var steer = avg.normalize().multiply(this.maxSpeed).add(this.velocity);
+    steer = steer.limit(this.maxForce);
+    this.applyForce(steer);
+  }
+};
+
+Vehicle.prototype.separate = function(vehicles) {
+  var desiredSeparation = (this.shape.r) ? this.shape.r * 3 : this.shape.w * 3;
+  var count = 0;
+  var vehicle = this;
+
+  var sum = vehicles.map(function(otherVehicle) {
+    var dist = vehicle.position.distance(otherVehicle.position);
+
+    if ((dist > 0) && (dist < desiredSeparation)) {
+      var diff = vehicle.position.subtract(otherVehicle.position);
+      return diff.normalize().divide(dist);
+    }
+
+    return false;
+  }).filter(function(diff) {
+    return (diff);
+  }).reduce(function(sum, curr, i) {
+    count++;
+    return sum.add(curr);
+  }, new Vector(0, 0));
+
+  if(count > 0) {
+    var avg = sum.divide(count);
+    var steer = avg.normalize().multiply(this.maxSpeed).subtract(this.velocity);
     steer = steer.limit(this.maxForce);
     this.applyForce(steer);
   }

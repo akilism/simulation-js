@@ -70,9 +70,9 @@ var cnvs = (function() {
       // path.addPoint(new Vector(430, 430));
       // path.addPoint(new Vector(630, 490));
       // path.addPoint(new Vector(740, 220));
-      // for(var i = 0; i < 250; i++) {
-
-      // }
+      for(var i = 0; i < 250; i++) {
+          addVehicle(Math.random() * canvasWidth/4, Math.random() * canvasHeight/4);
+      }
 
       // addVehicle(30, 0);
       // addVehicle(60, 0);
@@ -417,11 +417,9 @@ var cnvs = (function() {
     //   addOscillator();
     // }
 
-    if(vehicles.length < 300 && counter % 10 === 0) {
-      for(var i = 0; i < 10; i++) {
-        addVehicle(Math.random() * canvasWidth/4, Math.random() * canvasHeight/4);
-      }
-    }
+    // if(vehicles.length < 400 && counter % 15 === 0) {
+      // addVehicle(Math.random() * canvasWidth/4, Math.random() * canvasHeight/4);
+    // }
 
     movers.forEach(updateMover);
     basicShapes.forEach(updateBasicShape);
@@ -435,6 +433,8 @@ var cnvs = (function() {
     var x = moveX || canvasWidth/2;
     var y = moveY || canvasHeight/2;
     // vehicle.seek(new Vector(x, y));
+
+    // vehicle.group(vehicles);
     vehicle.separate(vehicles);
     vehicle.stayInBounds(20, canvasWidth, canvasHeight);
     // vehicle.flee(new Vector(x, y));
