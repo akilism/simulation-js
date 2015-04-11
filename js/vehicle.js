@@ -1,22 +1,9 @@
-var interpolater = (function(currMin, currMax, otherMin, otherMax) {
-  var left = currMax - currMin;
-  var right = otherMax - otherMin;
-
-  var scale = right / left;
-
-  var getVal = function(val) {
-    return otherMin + (val - currMin) * scale;
-  };
-
-  return getVal;
-});
-
 var Vehicle = function(position, shapeType, shapeOpts) {
   this.position = position.get();
   this.velocity = new Vector(0, 0);
   this.acceleration = new Vector(0, 0);
   this.maxSpeed = 4;
-  this.maxForce = 0.25;
+  this.maxForce = 0.15;
   this.w = (shapeOpts.w) ? shapeOpts.w : shapeOpts.r;
   this.h = (shapeOpts.h) ? shapeOpts.h : shapeOpts.r;
   this.shape = new shapeType(shapeOpts);
@@ -53,8 +40,8 @@ Vehicle.prototype.drawWanderer = function(ctx) {
     ctx.arc(this.futurePosition.x, this.futurePosition.y, this.r, 0, Math.PI*2, false);
     ctx.stroke();
 
-    var x = (this.r * Math.cos(this.theta)) + this.futurePosition.x;
-    var y = (this.r * Math.sin(this.theta)) + this.futurePosition.y;
+    var x = (this.r * utils.getCos(this.theta)) + this.futurePosition.x;
+    var y = (this.r * utils.getSin(this.theta)) + this.futurePosition.y;
     ctx.beginPath();
     ctx.moveTo(this.futurePosition.x, this.futurePosition.y);
     ctx.lineTo(x, y);
@@ -68,19 +55,10 @@ Vehicle.prototype.drawWanderer = function(ctx) {
 };
 
 Vehicle.prototype.drawPathFollow = function(ctx) {
-    // ctx.beginPath();
-    // ctx.moveTo(this.position.x, this.position.y);
-    // ctx.lineTo(this.futurePosition.x, this.futurePosition.y);
-    // ctx.stroke();
       ctx.beginPath();
       ctx.arc(this.predictPos.x, this.predictPos.y, 2, 0, Math.PI*2, false);
       ctx.fill();
       ctx.stroke();
-
-      // ctx.beginPath();
-      // ctx.moveTo(this.predictPos.x, this.predictPos.y);
-      // ctx.lineTo(this.path.start.x, this.path.start.y);
-      // ctx.stroke();
 
       ctx.beginPath();
       ctx.arc(this.normalPoint.x, this.normalPoint.y, 2, 0, Math.PI*2, false);
@@ -115,7 +93,7 @@ Vehicle.prototype.seek = function(target) {
   var desiredVelocity;
   if(d < 100) {
     //scale the velocity down depending on distance to target.
-    var vScaler = interpolater(0, 100, 0, this.maxSpeed);
+    var vScaler = utils.interpolater(0, 100, 0, this.maxSpeed);
     desiredVelocity = normalizedDesired.multiply(vScaler(d));
   } else{
     desiredVelocity = normalizedDesired.multiply(this.maxSpeed);
@@ -130,7 +108,7 @@ Vehicle.prototype.flee = function(target) {
   var normalizedDesired = rawDesired.normalize();
   if(d > 100) {
     //scale the velocity down depending on distance from target.
-    var vScaler = interpolater(100, 500, this.maxSpeed, 0);
+    var vScaler = utils.interpolater(100, 500, this.maxSpeed, 0);
     desiredVelocity = normalizedDesired.multiply(-1 * vScaler(d));
   } else{
     desiredVelocity = normalizedDesired.multiply(-1 * this.maxSpeed);
@@ -149,8 +127,8 @@ Vehicle.prototype.wander = function(l, r, counter) {
   } else {
     // this.theta += 0.01;
   }
-  var x = (r * Math.cos(this.theta)) + this.futurePosition.x;
-  var y = (r * Math.sin(this.theta)) + this.futurePosition.y;
+  var x = (r * utils.getCos(this.theta)) + this.futurePosition.x;
+  var y = (r * utils.getSin(this.theta)) + this.futurePosition.y;
 
   return new Vector(x, y);
 };
@@ -198,7 +176,6 @@ Vehicle.prototype.stayInBounds = function(wSize, canvasWidth, canvasHeight) {
 };
 
 Vehicle.prototype.followPath = function(path) {
-  // debugger;
   this.path = path;
   var predict = this.velocity.get().normalize().multiply(this.h + 25);
   this.predictPos = this.position.add(predict);
@@ -206,7 +183,7 @@ Vehicle.prototype.followPath = function(path) {
   this.startPredict = this.predictPos.subtract(path.start);
   this.startEnd = path.end.subtract(path.start);
   var theta = this.startPredict.angleBetween(this.startEnd);
-  var startNormal = this.startPredict.magnitude() * Math.cos(theta);
+  var startNormal = this.startPredict.magnitude() * utils.getCos(theta);
   this.normalPoint = path.start.add(this.startEnd.normalize().multiply(startNormal));
   //can use dot product because we normalize startEnd. scalar projection.
   // this.normalPoint = path.start.add(this.startEnd.normalize().multiply(this.startPredict.dotProduct(this.startEnd)));
@@ -248,61 +225,29 @@ Vehicle.prototype.getNormalPoint = function(predictPos, a, b) {
   var startPredict = predictPos.subtract(a);
   var startEnd = b.subtract(a);
   var theta = startPredict.angleBetween(startEnd);
-  var startNormal = startPredict.magnitude() * Math.cos(theta);
+  var startNormal = startPredict.magnitude() * utils.getCos(theta);
   var normalPoint = a.add(startEnd.normalize().multiply(startNormal));
   //can use dot product because we normalize startEnd. scalar projection.
   // normalPoint = a.add(startEnd.normalize().multiply(startPredict.dotProduct(startEnd)));
   return normalPoint;
 };
 
-Vehicle.prototype.group = function(vehicles) {
-  var desiredCohesion = (this.shape.r) ? this.shape.r * 2 : this.shape.w * 2;
-  var count = 0;
-  var vehicle = this;
-
-  var sum = vehicles.map(function(otherVehicle) {
-    var dist = vehicle.position.distance(otherVehicle.position);
-
-    if (dist > desiredCohesion) {
-      var diff = vehicle.position.subtract(otherVehicle.position).multiply(-1);
-      return diff.normalize().divide(dist);
-    }
-
-    return false;
-  }).filter(function(diff) {
-    return (diff);
-  }).reduce(function(sum, curr, i) {
-    count++;
-    return sum.add(curr);
-  }, new Vector(0, 0));
-
-  if(count > 0) {
-    var avg = sum.divide(count);
-    var steer = avg.normalize().multiply(this.maxSpeed);
-    steer = steer.limit(this.maxForce);
-    return steer;
-  }
-};
-
+//Attempt to stay a certain number of pixels away from other vehicles.
 Vehicle.prototype.separate = function(vehicles) {
   var desiredSeparation = (this.shape.r) ? this.shape.r * 3 : this.shape.w * 3;
   var count = 0;
   var vehicle = this;
 
-  var sum = vehicles.map(function(otherVehicle) {
-    var dist = vehicle.position.distance(otherVehicle.position);
+  var sum = vehicles.reduce(function(sum, curr, i) {
+    var dist = vehicle.position.distance(curr.position);
 
     if ((dist > 0) && (dist < desiredSeparation)) {
-      var diff = vehicle.position.subtract(otherVehicle.position);
-      return diff.normalize().divide(dist);
+      var diff = vehicle.position.subtract(curr.position);
+      count++;
+      return sum.add(diff.normalize().divide(dist));
     }
 
-    return false;
-  }).filter(function(diff) {
-    return (diff);
-  }).reduce(function(sum, curr, i) {
-    count++;
-    return sum.add(curr);
+    return sum.add(new Vector(0, 0));
   }, new Vector(0, 0));
 
   if(count > 0) {
@@ -310,6 +255,57 @@ Vehicle.prototype.separate = function(vehicles) {
     var steer = avg.normalize().multiply(this.maxSpeed).subtract(this.velocity);
     steer = steer.limit(this.maxForce);
     return steer;
+  } else {
+    return new Vector(0, 0);
   }
 };
 
+//Avg of all the other vehicle velocities within a certain distance
+//Then apply steering force formula
+Vehicle.prototype.align = function(vehicles, dist) {
+  var vehicle = this;
+  var count = 0;
+
+  var sum = vehicles.reduce(function(sum, curr, i) {
+    var vDist = vehicle.position.distance(curr.position);
+
+    if((vDist > 0) && (vDist < dist)) {
+      count++;
+      return sum.add(curr.velocity);
+    }
+    return sum.add(new Vector(0, 0));
+  }, new Vector(0, 0));
+
+  if(count > 0) {
+    var avg = sum.divide(count);
+    var steer = sum.multiply(this.maxSpeed).subtract(this.velocity);
+    steer = steer.limit(this.maxForce);
+    return steer;
+  } else {
+    return new Vector(0, 0);
+  }
+};
+
+//avg of all the other vehicle positions within a certain distance.
+//then seek that position.
+Vehicle.prototype.cohesion = function(vehicles, dist) {
+  var vehicle = this;
+  var count = 0;
+
+  var sum = vehicles.reduce(function(sum, curr, i) {
+    var vDist = vehicle.position.distance(curr.position);
+
+    if((vDist > 0) && (vDist < dist)) {
+      count++;
+      return sum.add(curr.position);
+    }
+    return sum.add(new Vector(0, 0));
+  }, new Vector(0, 0));
+
+  if(count > 0) {
+    var avg = sum.divide(count);
+    return vehicle.seek(avg);
+  } else {
+    return new Vector(0, 0);
+  }
+};

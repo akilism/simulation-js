@@ -17,6 +17,8 @@ var cnvs = (function() {
     pendulums = [],
     springs = [],
     vehicles = [],
+    boids = [],
+    boidGrid = [],
     clickX,
     clickY,
     moveX,
@@ -31,19 +33,6 @@ var cnvs = (function() {
     ty = 10000,
     mouseClicked = false;
 
-  var interpolater = (function(currMin, currMax, otherMin, otherMax) {
-    var left = currMax - currMin;
-    var right = otherMax - otherMin;
-
-    var scale = right / left;
-
-    var getVal = function(val) {
-      return otherMin + (val - currMin) * scale;
-    };
-
-    return getVal;
-  });
-
   var setCanvas = function(can) {
     canvas = can;
     if(canvas.getContext) {
@@ -53,10 +42,10 @@ var cnvs = (function() {
       isCanvasEnabled = true;
       canvas.addEventListener('click', onClick);
       canvas.addEventListener('mousemove', onMouseMove);
-      xScaler = interpolater(0, 1, 0, 600);
-      yScaler = interpolater(0, 1, 0, 600);
-      rScaler = interpolater(10, 50, Math.min(75, canvasWidth/8), Math.max(15, canvasWidth/24));
-      alphaScaler = interpolater(0, 1, 0, 255);
+      xScaler = utils.interpolater(0, 1, 0, 600);
+      yScaler = utils.interpolater(0, 1, 0, 600);
+      rScaler = utils.interpolater(10, 50, Math.min(75, canvasWidth/8), Math.max(15, canvasWidth/24));
+      alphaScaler = utils.interpolater(0, 1, 0, 255);
       // addParticleSystem(canvasWidth/2, canvasHeight/2);
       // addRepeller();
       // addOscillator();
@@ -65,20 +54,18 @@ var cnvs = (function() {
       // addPendulum();
       // addWave();
       // addSpring();
-      path = new Path(30);
-      path.addPoint(new Vector(30, 930));
-      path.addPoint(new Vector(430, 430));
-      path.addPoint(new Vector(630, 490));
-      path.addPoint(new Vector(740, 220));
-      for(var i = 0; i < 150; i++) {
-          addVehicle(Math.random() * canvasWidth/4, Math.random() * canvasHeight/4);
-      }
-
-      // addVehicle(30, 0);
-      // addVehicle(60, 0);
-
-      // addVehicle(120, 0);
+      // path = new Path(30);
+      // path.addPoint(new Vector(30, 930));
+      // path.addPoint(new Vector(430, 430));
+      // path.addPoint(new Vector(630, 490));
+      // path.addPoint(new Vector(740, 220));
       // flowField = new FlowField(canvasWidth, canvasHeight);
+      for(var i = 0; i < 500; i++) {
+        var x = Math.random() * 1750;
+        var y = Math.random() * 1750;
+        addBoid(x, y);
+        // addVehicle(x, y);
+      }
     } else {
       isCanvasEnabled = false;
     }
@@ -329,7 +316,17 @@ var cnvs = (function() {
     vehicles.push(new Vehicle(
       new Vector(x, y),
       Circle,
-      {r: 5 , color: getColor(true)}
+      {r: 5, color: getColor(true)}
+    ));
+  };
+
+  var addBoid = function(x, y) {
+    boids.push(new Boid(
+      new Vector(x, y),
+      Circle,
+      {r: 2, color: getColor(true)}
+      // Triangle,
+      // {w: 5, h:15, color: getColor(true)}
     ));
   };
 
@@ -340,6 +337,7 @@ var cnvs = (function() {
 
   var render = function() {
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    // drawMousePos();
     particleSystems.forEach(function(particleSystem) { particleSystem.draw(ctx); });
     repellers.forEach(function(repeller) { repeller.draw(ctx); });
     attractors.forEach(function(attractor) { attractor.draw(ctx); });
@@ -351,14 +349,15 @@ var cnvs = (function() {
     springs.forEach(function(spring) { spring.draw(ctx); });
     if(path) { path.draw(ctx); }
     vehicles.forEach(function(vehicle) { vehicle.draw(ctx); });
-
-    // if(moveX && moveY) {
-    //   ctx.beginPath();
-    //   ctx.arc(moveX, moveY, 20, 0, Math.PI*2, false);
-    //   ctx.fillStyle = 'rgba(0,0,0, 0.5)';
-    //   ctx.fill();
-    // }
-
+    boids.forEach(function(boid) {
+      //bi-lattice subdivision.
+      //store all boids in a [x][y] grid
+      var gridPos = boid.gridPosition();
+      if(!boidGrid[gridPos.x]) { boidGrid[gridPos.x] = []; }
+      if(!boidGrid[gridPos.x][gridPos.y]) { boidGrid[gridPos.x][gridPos.y] = []; }
+      boidGrid[gridPos.x][gridPos.y].push(boid);
+      boid.draw(ctx);
+    });
     counter++;
   };
 
@@ -388,13 +387,21 @@ var cnvs = (function() {
     moveX = evt.clientX;
     moveY = evt.clientY;
     // console.log('move', moveX, moveY);
-
   };
 
   var redraw = function() {
     if(!drawPending) {
       drawPending = true;
       requestAnimationFrame(run);
+    }
+  };
+
+  var drawMousePos = function() {
+    if(moveX && moveY) {
+      ctx.beginPath();
+      ctx.arc(moveX, moveY, 20, 0, Math.PI*2, false);
+      ctx.fillStyle = 'rgba(0,0,0, 0.5)';
+      ctx.fill();
     }
   };
 
@@ -427,6 +434,35 @@ var cnvs = (function() {
     pendulums.forEach(updatePendulum);
     springs.forEach(updateSpring);
     vehicles.forEach(updateVehicle);
+    boids.forEach(updateBoid);
+    boidGrid = [];
+  };
+
+  var bilatticeFlock = function(boid) {
+    //bi-lattice subdivision.
+    //only look at boids in same grid position or neighbor positions
+    var gridPos = boid.gridPosition();
+    if(boidGrid[gridPos.x] !== undefined) {
+      for(var i = -1; i <= 1; i++) {
+        for(var p = -1; p <= 1; p++) {
+          var col = i + gridPos.x;
+          var row = p + gridPos.y;
+          if(row < 0 || col < 0) { continue; }
+          if(!boidGrid[col] || !boidGrid[col][row]) { continue; }
+          boid.flock(boidGrid[col][row]);
+        }
+      }
+    }
+  };
+
+  var updateBoid = function(boid) {
+    bilatticeFlock(boid);
+    var bounds = boid.stayInBounds(-50, canvasWidth, canvasHeight);
+    if(bounds) {
+     bounds = bounds.multiply(2);
+     boid.applyForce(bounds);
+    }
+    boid.update();
   };
 
   var updateVehicle = function(vehicle) {
@@ -434,7 +470,8 @@ var cnvs = (function() {
     var y = moveY || canvasHeight/2;
     // vehicle.seek(new Vector(x, y));
 
-    var group = vehicle.group(vehicles);
+    var cohesion = vehicle.cohesion(vehicles, 50);
+
     var separate = vehicle.separate(vehicles);
     var bounds = vehicle.stayInBounds(20, canvasWidth, canvasHeight);
     // vehicle.flee(new Vector(x, y));
@@ -443,22 +480,22 @@ var cnvs = (function() {
     // vehicle.follow(flowForce);
     // vehicle.seek(vehicle.followPath(paths[0]));
     // vehicle.followPath(path);
-    var followPathSegments = vehicle.followPathSegments(path);
+    // var followPathSegments = vehicle.followPathSegments(path);
 
     if(separate) {
       separate = separate.multiply(1.5);
       vehicle.applyForce(separate);
     }
 
-    // if(group) {
-    //   group = group.multiply(0.5);
-    //   vehicle.applyForce(group);
-    // }
-
-    if(followPathSegments) {
-      followPathSegments = followPathSegments.multiply(0.5);
-      vehicle.applyForce(followPathSegments);
+    if(cohesion) {
+      cohesion = cohesion.multiply(0.5);
+      vehicle.applyForce(cohesion);
     }
+
+    // if(followPathSegments) {
+    //   followPathSegments = followPathSegments.multiply(0.5);
+    //   vehicle.applyForce(followPathSegments);
+    // }
 
     if(bounds) {
      bounds = bounds.multiply(2);

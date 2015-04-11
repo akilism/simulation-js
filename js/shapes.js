@@ -1,16 +1,3 @@
-var interpolater = (function(currMin, currMax, otherMin, otherMax) {
-  var left = currMax - currMin;
-  var right = otherMax - otherMin;
-
-  var scale = right / left;
-
-  var getVal = function(val) {
-    return otherMin + (val - currMin) * scale;
-  };
-
-  return getVal;
-});
-
 var Shape = function(opts) {
   this.color = opts.color || 'rgba(100,100,100,1)';
   this.position = null;
@@ -68,7 +55,7 @@ Triangle.prototype.draw = function(ctx, alpha) {
   ctx.lineTo(this.w, 0);
   ctx.closePath();
   ctx.fillStyle = (alpha) ? this.setAlpha(alpha, this.color) : this.color;
-  ctx.fill();
+  // ctx.fill();
   ctx.stroke();
   ctx.restore();
 };
@@ -111,7 +98,7 @@ var Confetti = function(opts) {
   this.h = opts.h;
   this.w = opts.w;
   this.canvasWidth = opts.canvasWidth;
-  this.theta = interpolater(0, this.canvasWidth, 0, Math.PI * 4);
+  this.theta = utils.interpolater(0, this.canvasWidth, 0, Math.PI * 4);
 };
 
 Confetti.prototype = Object.create(Shape.prototype);
