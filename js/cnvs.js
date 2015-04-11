@@ -65,12 +65,12 @@ var cnvs = (function() {
       // addPendulum();
       // addWave();
       // addSpring();
-      // path = new Path(30);
-      // path.addPoint(new Vector(30, 930));
-      // path.addPoint(new Vector(430, 430));
-      // path.addPoint(new Vector(630, 490));
-      // path.addPoint(new Vector(740, 220));
-      for(var i = 0; i < 250; i++) {
+      path = new Path(30);
+      path.addPoint(new Vector(30, 930));
+      path.addPoint(new Vector(430, 430));
+      path.addPoint(new Vector(630, 490));
+      path.addPoint(new Vector(740, 220));
+      for(var i = 0; i < 150; i++) {
           addVehicle(Math.random() * canvasWidth/4, Math.random() * canvasHeight/4);
       }
 
@@ -434,16 +434,37 @@ var cnvs = (function() {
     var y = moveY || canvasHeight/2;
     // vehicle.seek(new Vector(x, y));
 
-    // vehicle.group(vehicles);
-    vehicle.separate(vehicles);
-    vehicle.stayInBounds(20, canvasWidth, canvasHeight);
+    var group = vehicle.group(vehicles);
+    var separate = vehicle.separate(vehicles);
+    var bounds = vehicle.stayInBounds(20, canvasWidth, canvasHeight);
     // vehicle.flee(new Vector(x, y));
     // vehicle.seek(vehicle.wander(250, 75, counter));
     // var flowForce = flowField.lookup(vehicle.position);
     // vehicle.follow(flowForce);
     // vehicle.seek(vehicle.followPath(paths[0]));
     // vehicle.followPath(path);
-    // vehicle.followPathSegments(path);
+    var followPathSegments = vehicle.followPathSegments(path);
+
+    if(separate) {
+      separate = separate.multiply(1.5);
+      vehicle.applyForce(separate);
+    }
+
+    // if(group) {
+    //   group = group.multiply(0.5);
+    //   vehicle.applyForce(group);
+    // }
+
+    if(followPathSegments) {
+      followPathSegments = followPathSegments.multiply(0.5);
+      vehicle.applyForce(followPathSegments);
+    }
+
+    if(bounds) {
+     bounds = bounds.multiply(2);
+      vehicle.applyForce(bounds);
+    }
+
     vehicle.update();
   };
 

@@ -15,8 +15,8 @@ var Vehicle = function(position, shapeType, shapeOpts) {
   this.position = position.get();
   this.velocity = new Vector(0, 0);
   this.acceleration = new Vector(0, 0);
-  this.maxSpeed = 3;
-  this.maxForce = 0.1;
+  this.maxSpeed = 4;
+  this.maxForce = 0.25;
   this.w = (shapeOpts.w) ? shapeOpts.w : shapeOpts.r;
   this.h = (shapeOpts.h) ? shapeOpts.h : shapeOpts.r;
   this.shape = new shapeType(shapeOpts);
@@ -105,7 +105,7 @@ Vehicle.prototype.update = function() {
 Vehicle.prototype.follow = function(desired) {
   var dVel = desired.multiply(this.maxSpeed);
   var steerForce = dVel.subtract(this.velocity);
-  this.applyForce(steerForce);
+  return steer;
 };
 
 Vehicle.prototype.seek = function(target) {
@@ -121,7 +121,7 @@ Vehicle.prototype.seek = function(target) {
     desiredVelocity = normalizedDesired.multiply(this.maxSpeed);
   }
   var steerForce = desiredVelocity.subtract(this.velocity);
-  this.applyForce(steerForce.limit(this.maxForce));
+  return steerForce.limit(this.maxForce);
 };
 
 Vehicle.prototype.flee = function(target) {
@@ -136,7 +136,7 @@ Vehicle.prototype.flee = function(target) {
     desiredVelocity = normalizedDesired.multiply(-1 * this.maxSpeed);
   }
   var steerForce = desiredVelocity.subtract(this.velocity);
-  this.applyForce(steerForce.limit(this.maxForce));
+  return steerForce.limit(this.maxForce);
 };
 
 Vehicle.prototype.wander = function(l, r, counter) {
@@ -193,7 +193,7 @@ Vehicle.prototype.stayInBounds = function(wSize, canvasWidth, canvasHeight) {
   if(count) {
     var avg = sum.divide(count);
     steer = avg.subtract(this.velocity);
-    this.applyForce(steer);
+    return steer;
   }
 };
 
@@ -213,7 +213,7 @@ Vehicle.prototype.followPath = function(path) {
   var distance = this.predictPos.distance(this.normalPoint);
   if(distance > path.r - 5) {  //seek 25 pixels in front of normal point.
     var scale = this.startEnd.normalize().multiply(25);
-    this.seek(this.normalPoint.add(scale));
+    return this.seek(this.normalPoint.add(scale));
   }
 };
 
@@ -241,7 +241,7 @@ Vehicle.prototype.followPathSegments = function(path) {
   }
 
   this.normalPoint = target;
-  this.seek(target);
+  return this.seek(target);
 };
 
 Vehicle.prototype.getNormalPoint = function(predictPos, a, b) {
@@ -278,9 +278,9 @@ Vehicle.prototype.group = function(vehicles) {
 
   if(count > 0) {
     var avg = sum.divide(count);
-    var steer = avg.normalize().multiply(this.maxSpeed).add(this.velocity);
+    var steer = avg.normalize().multiply(this.maxSpeed);
     steer = steer.limit(this.maxForce);
-    this.applyForce(steer);
+    return steer;
   }
 };
 
@@ -309,7 +309,7 @@ Vehicle.prototype.separate = function(vehicles) {
     var avg = sum.divide(count);
     var steer = avg.normalize().multiply(this.maxSpeed).subtract(this.velocity);
     steer = steer.limit(this.maxForce);
-    this.applyForce(steer);
+    return steer;
   }
 };
 
