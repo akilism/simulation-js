@@ -1,6 +1,6 @@
 var Vehicle = function(position, shapeType, shapeOpts) {
   this.position = position.get();
-  this.velocity = new Vector(0, 0);
+  this.velocity = new Vector(random.monteCarlo(), random.monteCarlo());
   this.acceleration = new Vector(0, 0);
   this.maxSpeed = 4;
   this.maxForce = 0.15;
@@ -88,13 +88,14 @@ Vehicle.prototype.follow = function(desired) {
 
 Vehicle.prototype.seek = function(target) {
   var rawDesired = target.subtract(this.position);
-  var d = rawDesired.magnitude();
+  var d = rawDesired.magnitudeSquared();
   var normalizedDesired = rawDesired.normalize();
   var desiredVelocity;
-  if(d < 100) {
+  if(d < 1000) {
     //scale the velocity down depending on distance to target.
     var vScaler = utils.interpolater(0, 100, 0, this.maxSpeed);
-    desiredVelocity = normalizedDesired.multiply(vScaler(d));
+    var dMag = rawDesired.magnitude();
+    desiredVelocity = normalizedDesired.multiply(vScaler(dMag));
   } else{
     desiredVelocity = normalizedDesired.multiply(this.maxSpeed);
   }
@@ -104,12 +105,13 @@ Vehicle.prototype.seek = function(target) {
 
 Vehicle.prototype.flee = function(target) {
   var rawDesired = target.subtract(this.position);
-  var d = rawDesired.magnitude();
+  var d = rawDesired.magnitudeSquared();
   var normalizedDesired = rawDesired.normalize();
-  if(d > 100) {
+  if(d > 1000) {
     //scale the velocity down depending on distance from target.
     var vScaler = utils.interpolater(100, 500, this.maxSpeed, 0);
-    desiredVelocity = normalizedDesired.multiply(-1 * vScaler(d));
+    var dMag = rawDesired.magnitude();
+    desiredVelocity = normalizedDesired.multiply(-1 * vScaler(dMag));
   } else{
     desiredVelocity = normalizedDesired.multiply(-1 * this.maxSpeed);
   }
@@ -182,11 +184,11 @@ Vehicle.prototype.followPath = function(path) {
 
   this.startPredict = this.predictPos.subtract(path.start);
   this.startEnd = path.end.subtract(path.start);
-  var theta = this.startPredict.angleBetween(this.startEnd);
-  var startNormal = this.startPredict.magnitude() * utils.getCos(theta);
-  this.normalPoint = path.start.add(this.startEnd.normalize().multiply(startNormal));
+  // var theta = this.startPredict.angleBetween(this.startEnd);
+  // var startNormal = this.startPredict.magnitude() * utils.getCos(theta);
+  // this.normalPoint = path.start.add(this.startEnd.normalize().multiply(startNormal));
   //can use dot product because we normalize startEnd. scalar projection.
-  // this.normalPoint = path.start.add(this.startEnd.normalize().multiply(this.startPredict.dotProduct(this.startEnd)));
+  this.normalPoint = path.start.add(this.startEnd.normalize().multiply(this.startPredict.dotProduct(this.startEnd)));
   var distance = this.predictPos.distance(this.normalPoint);
   if(distance > path.r - 5) {  //seek 25 pixels in front of normal point.
     var scale = this.startEnd.normalize().multiply(25);
@@ -224,21 +226,21 @@ Vehicle.prototype.followPathSegments = function(path) {
 Vehicle.prototype.getNormalPoint = function(predictPos, a, b) {
   var startPredict = predictPos.subtract(a);
   var startEnd = b.subtract(a);
-  var theta = startPredict.angleBetween(startEnd);
-  var startNormal = startPredict.magnitude() * utils.getCos(theta);
-  var normalPoint = a.add(startEnd.normalize().multiply(startNormal));
+  // var theta = startPredict.angleBetween(startEnd);
+  // var startNormal = startPredict.magnitude() * utils.getCos(theta);
+  // var normalPoint = a.add(startEnd.normalize().multiply(startNormal));
   //can use dot product because we normalize startEnd. scalar projection.
-  // normalPoint = a.add(startEnd.normalize().multiply(startPredict.dotProduct(startEnd)));
+  normalPoint = a.add(startEnd.normalize().multiply(startPredict.dotProduct(startEnd)));
   return normalPoint;
 };
 
 //Attempt to stay a certain number of pixels away from other vehicles.
 Vehicle.prototype.separate = function(vehicles) {
-  var desiredSeparation = (this.shape.r) ? this.shape.r * 3 : this.shape.w * 3;
+  var desiredSeparation = (this.shape.r) ? this.shape.r * 4 : this.shape.w * 4;
   var count = 0;
   var vehicle = this;
 
-  var sum = vehicles.reduce(function(sum, curr, i) {
+  var summer = function(sum, curr, i) {
     var dist = vehicle.position.distance(curr.position);
 
     if ((dist > 0) && (dist < desiredSeparation)) {
@@ -248,7 +250,9 @@ Vehicle.prototype.separate = function(vehicles) {
     }
 
     return sum.add(new Vector(0, 0));
-  }, new Vector(0, 0));
+  };
+
+  var sum = vehicles.reduce(summer, new Vector(0, 0));
 
   if(count > 0) {
     var avg = sum.divide(count);
@@ -266,7 +270,7 @@ Vehicle.prototype.align = function(vehicles, dist) {
   var vehicle = this;
   var count = 0;
 
-  var sum = vehicles.reduce(function(sum, curr, i) {
+  var summer = function(sum, curr, i) {
     var vDist = vehicle.position.distance(curr.position);
 
     if((vDist > 0) && (vDist < dist)) {
@@ -274,7 +278,9 @@ Vehicle.prototype.align = function(vehicles, dist) {
       return sum.add(curr.velocity);
     }
     return sum.add(new Vector(0, 0));
-  }, new Vector(0, 0));
+  };
+
+  var sum = vehicles.reduce(summer, new Vector(0, 0));
 
   if(count > 0) {
     var avg = sum.divide(count);
@@ -292,7 +298,7 @@ Vehicle.prototype.cohesion = function(vehicles, dist) {
   var vehicle = this;
   var count = 0;
 
-  var sum = vehicles.reduce(function(sum, curr, i) {
+  var summer = function(sum, curr, i) {
     var vDist = vehicle.position.distance(curr.position);
 
     if((vDist > 0) && (vDist < dist)) {
@@ -300,7 +306,9 @@ Vehicle.prototype.cohesion = function(vehicles, dist) {
       return sum.add(curr.position);
     }
     return sum.add(new Vector(0, 0));
-  }, new Vector(0, 0));
+  };
+
+  var sum = vehicles.reduce(summer, new Vector(0, 0));
 
   if(count > 0) {
     var avg = sum.divide(count);

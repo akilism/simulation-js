@@ -22,13 +22,13 @@ Vector.prototype.divide = function(n) {
   return new Vector((this.x / n), (this.y / n));
 };
 
-Vector.prototype.magnitudeSqared = function() {
+Vector.prototype.magnitudeSquared = function() {
   if(this.magSquared === null) { this.magSquared = (this.x * this.x) + (this.y * this.y); }
   return this.magSquared;
 };
 
 Vector.prototype.magnitude = function() {
-  if(this.mag === null) { this.mag = Math.sqrt(this.magnitudeSqared()); }
+  if(this.mag === null) { this.mag = Math.sqrt(this.magnitudeSquared()); }
   return this.mag;
 };
 
@@ -43,6 +43,10 @@ Vector.prototype.normalize = function() {
   }
 
   return this.normalized.get();
+};
+
+Vector.prototype.distanceSquared = function(other) {
+  return Math.pow(this.x - other.x, 2) + Math.pow(this.y - other.y, 2);
 };
 
 Vector.prototype.distance = function(other) {

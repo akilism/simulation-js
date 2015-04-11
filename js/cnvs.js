@@ -40,8 +40,8 @@ var cnvs = (function() {
       canvasHeight = canvas.height;
       canvasWidth = canvas.width;
       isCanvasEnabled = true;
-      canvas.addEventListener('click', onClick);
-      canvas.addEventListener('mousemove', onMouseMove);
+      // canvas.addEventListener('click', onClick);
+      // canvas.addEventListener('mousemove', onMouseMove);
       xScaler = utils.interpolater(0, 1, 0, 600);
       yScaler = utils.interpolater(0, 1, 0, 600);
       rScaler = utils.interpolater(10, 50, Math.min(75, canvasWidth/8), Math.max(15, canvasWidth/24));
@@ -54,15 +54,11 @@ var cnvs = (function() {
       // addPendulum();
       // addWave();
       // addSpring();
-      // path = new Path(30);
-      // path.addPoint(new Vector(30, 930));
-      // path.addPoint(new Vector(430, 430));
-      // path.addPoint(new Vector(630, 490));
-      // path.addPoint(new Vector(740, 220));
+      // addPath(30);
       // flowField = new FlowField(canvasWidth, canvasHeight);
-      for(var i = 0; i < 500; i++) {
-        var x = Math.random() * 1750;
-        var y = Math.random() * 1750;
+      for(var i = 0; i < 300; i++) {
+        var x = Math.random() * canvasWidth;
+        var y = Math.random() * canvasHeight;
         addBoid(x, y);
         // addVehicle(x, y);
       }
@@ -176,11 +172,12 @@ var cnvs = (function() {
     };
   };
 
-  var springMaker = function() {
-    var Spring = function(x, y, l) {
+  var springMaker = function(ctx) {
+    var Spring = function(x, y, l, ctx) {
       this.anchor = new Vector(x, y);
       this.restLength = l;
       this.k = 0.1; //how rigid is this spring?
+      this.ctx = ctx;
     };
 
     Spring.prototype.connect = function(bob) {
@@ -191,20 +188,20 @@ var cnvs = (function() {
       return normForce.multiply(-1 * this.k * x);
     };
 
-    Spring.prototype.draw = function(ctx, bobPos) {
-      ctx.fillStyle = 'rgba(0,0,0,1)';
-      ctx.fillRect(this.anchor.x-5, this.anchor.y-5, 10, 10);
-
-      ctx.beginPath();
-      ctx.moveTo(this.anchor.x, this.anchor.y);
-      ctx.lineTo(bobPos.x, bobPos.y);
-      ctx.stroke();
+    Spring.prototype.draw = function(bobPos) {
+      this.ctx.fillStyle = 'rgba(0,0,0,1)';
+      this.ctx.fillRect(this.anchor.x-5, this.anchor.y-5, 10, 10);
+      this.ctx.beginPath();
+      this.ctx.moveTo(this.anchor.x, this.anchor.y);
+      this.ctx.lineTo(bobPos.x, bobPos.y);
+      this.ctx.stroke();
     };
 
 
-    var spring = new Spring(canvasWidth/2, 40, 240);
+    var spring = new Spring(canvasWidth/2, 40, 240, ctx);
+
     var bob = new Mover(Circle,
-      {r: 25 , color: getColor(true)},
+      {r: 25 , color: getColor(true), ctx: ctx},
       12,
       0.01,
       new Vector(canvasWidth/2, 40),
@@ -220,9 +217,9 @@ var cnvs = (function() {
       bob.update();
     };
 
-    var draw = function(ctx) {
-      bob.draw(ctx);
-      spring.draw(ctx, bob.position);
+    var draw = function() {
+      bob.draw();
+      spring.draw(bob.position);
     };
 
     return {
@@ -233,14 +230,14 @@ var cnvs = (function() {
 
   var addCircle = function() {
     basicShapes.push({ update: polarUpdate,
-      shape: new Circle({ r: 50, color: getColor() })});
+      shape: new Circle({ r: 50, color: getColor(), ctx: ctx })});
     basicShapes[basicShapes.length-1].shape.setPosition(new Vector(canvasWidth/2, canvasHeight/2), 0);
   };
 
   var addAttractor = function() {
     var mass = 50;
     attractors.push(new Attractor(Circle,
-      {r: mass, color: '#00FF00'},
+      {r: mass, color: '#00FF00', ctx: ctx},
       mass,
       10,
       new Vector(canvasWidth/2, canvasHeight-100)
@@ -254,7 +251,7 @@ var cnvs = (function() {
     var vY = (Math.random > 0.5) ? -Math.min(0.05, Math.random()) : Math.min(0.05, Math.random());
     var velocity = new Vector(vX, vY);
     oscillators.push(new Oscillator(Circle,
-      {r: 25, color: getColor(true)},
+      {r: 25, color: getColor(true), ctx: ctx},
       angle,
       velocity,
       amplitude,
@@ -266,7 +263,7 @@ var cnvs = (function() {
   var addRepeller = function() {
     var mass = 40;
     repellers.push(new Repeller(Circle,
-      {r: mass, color: 'rgba(140, 140, 0, .5)'},
+      {r: mass, color: 'rgba(140, 140, 0, .5)', ctx: ctx},
       mass,
       1,
       new Vector(canvasWidth/2, canvasHeight/2)
@@ -280,7 +277,7 @@ var cnvs = (function() {
     // Mover(Rectangle,
     //   {w: 30, h: 15, color: getColor(true)}
     movers.push(new Mover(Circle,
-      {r: mass , color: getColor(true)},
+      {r: mass , color: getColor(true), ctx: ctx},
       mass,
       0.1,
       new Vector(Math.random() * canvasWidth,
@@ -297,7 +294,8 @@ var cnvs = (function() {
     particleSystems.push(new ParticleSystem(
       new Vector(x, y),
       canvasWidth,
-      canvasHeight));
+      canvasHeight,
+      ctx));
   };
 
   var addPendulum = function () {
@@ -305,7 +303,7 @@ var cnvs = (function() {
   };
 
   var addSpring = function() {
-    springs.push(springMaker());
+    springs.push(springMaker(ctx));
   };
 
   var addVehicle = function(xOff, yOff) {
@@ -316,18 +314,24 @@ var cnvs = (function() {
     vehicles.push(new Vehicle(
       new Vector(x, y),
       Circle,
-      {r: 5, color: getColor(true)}
+      {r: 5, color: getColor(true), ctx: ctx}
     ));
   };
 
   var addBoid = function(x, y) {
     boids.push(new Boid(
       new Vector(x, y),
-      Circle,
-      {r: 2, color: getColor(true)}
-      // Triangle,
-      // {w: 5, h:15, color: getColor(true)}
+      Triangle,
+      {w: 5, h:15, color: getColor(true), ctx:ctx}
     ));
+  };
+
+  var addPath = function(r) {
+    path = new Path(r, ctx);
+    path.addPoint(new Vector(30, 930));
+    path.addPoint(new Vector(430, 430));
+    path.addPoint(new Vector(630, 490));
+    path.addPoint(new Vector(740, 220));
   };
 
   var tick = function(delta) {
@@ -347,8 +351,22 @@ var cnvs = (function() {
     waves.forEach(function(wave) { wave.draw(ctx); });
     pendulums.forEach(function(pendulum) { pendulum.draw(ctx); });
     springs.forEach(function(spring) { spring.draw(ctx); });
-    if(path) { path.draw(ctx); }
+    if(path) { path.draw(); }
     vehicles.forEach(function(vehicle) { vehicle.draw(ctx); });
+    // boids.forEach(function(boid) {
+    //   //bi-lattice subdivision.
+    //   //store all boids in a [x][y] grid
+    //   var gridPos = boid.gridPosition();
+    //   if(!boidGrid[gridPos.x]) { boidGrid[gridPos.x] = []; }
+    //   if(!boidGrid[gridPos.x][gridPos.y]) { boidGrid[gridPos.x][gridPos.y] = []; }
+    //   boidGrid[gridPos.x][gridPos.y].push(boid);
+    //   boid.draw(ctx);
+    // });
+    drawBoids();
+    counter++;
+  };
+
+  var drawBoids = function() {
     boids.forEach(function(boid) {
       //bi-lattice subdivision.
       //store all boids in a [x][y] grid
@@ -356,9 +374,60 @@ var cnvs = (function() {
       if(!boidGrid[gridPos.x]) { boidGrid[gridPos.x] = []; }
       if(!boidGrid[gridPos.x][gridPos.y]) { boidGrid[gridPos.x][gridPos.y] = []; }
       boidGrid[gridPos.x][gridPos.y].push(boid);
-      boid.draw(ctx);
+      drawBoid(boid);
     });
-    counter++;
+  };
+
+  var drawBoid = function(boid) {
+    if (boid.shape instanceof Circle) { drawCircle(boid); }
+    else if (boid.shape instanceof Confetti) { drawConfetti(boid); }
+    else if (boid.shape instanceof Rectangle) { drawRectangle(boid); }
+    else if (boid.shape instanceof Triangle) { drawTriangle(boid); }
+  };
+
+  var drawCircle = function(body) {
+    ctx.save();
+    ctx.translate(body.shape.position.x, body.shape.position.y);
+    ctx.rotate(body.shape.angle);
+    ctx.beginPath();
+    ctx.arc(0, 0, body.shape.r, 0, body.shape.endAngle, false);
+    ctx.fillStyle = (body.timeToLive) ? body.shape.setAlpha(body.timeToLive, body.shape.color) : body.shape.color;
+    ctx.fill();
+    ctx.restore();
+  };
+
+  var drawConfetti = function(body) {
+    ctx.save();
+    ctx.translate(body.shape.position.x, body.shape.position.y);
+    var angle = body.shape.theta(body.shape.position.y);
+    ctx.rotate(angle);
+    ctx.fillStyle = (body.timeToLive) ? body.shape.setAlpha(body.timeToLive, body.shape.color) : body.shape.color;
+    ctx.fillRect(0, 0, body.shape.w, body.shape.h);
+    ctx.restore();
+  };
+
+  var drawRectangle = function(body) {
+    ctx.save();
+    ctx.translate(body.shape.position.x, body.shape.position.y);
+    ctx.rotate(body.shape.angle);
+    ctx.fillStyle = (body.timeToLive) ? body.shape.setAlpha(body.timeToLive, body.shape.color) : body.shape.color;
+    ctx.fillRect(0, 0, body.shape.w, body.shape.h);
+    ctx.restore();
+  };
+
+  var drawTriangle = function(body) {
+    ctx.save();
+    ctx.translate(body.shape.position.x, body.shape.position.y);
+    ctx.rotate(body.shape.angle - Math.PI/2);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(body.shape.w/2, body.shape.h);
+    ctx.lineTo(body.shape.w, 0);
+    ctx.closePath();
+    ctx.fillStyle = (body.timeToLive) ? body.shape.setAlpha(body.timeToLive, body.shape.color) : body.shape.color;
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
   };
 
   var run = function(timestamp) {
@@ -456,12 +525,14 @@ var cnvs = (function() {
   };
 
   var updateBoid = function(boid) {
+    boid.wrap(canvasWidth, canvasHeight);
     bilatticeFlock(boid);
-    var bounds = boid.stayInBounds(-50, canvasWidth, canvasHeight);
-    if(bounds) {
-     bounds = bounds.multiply(2);
-     boid.applyForce(bounds);
-    }
+    // var bounds = boid.stayInBounds(-50, canvasWidth, canvasHeight);
+    // if(bounds) {
+    //  bounds = bounds.multiply(2);
+    //  boid.applyForce(bounds);
+    // }
+
     boid.update();
   };
 

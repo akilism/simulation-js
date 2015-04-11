@@ -21,7 +21,7 @@ var FlowField = function(canvasWidth, canvasHeight) {
 };
 
 FlowField.prototype.populateFieldNoise = function() {
-  var noise = perlinNoise;
+  var noise = random;
   var xOff = 0;
   for(var x = 0; x < this.cols; x++) {
     this.field[x] = [];

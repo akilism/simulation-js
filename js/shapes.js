@@ -55,7 +55,7 @@ Triangle.prototype.draw = function(ctx, alpha) {
   ctx.lineTo(this.w, 0);
   ctx.closePath();
   ctx.fillStyle = (alpha) ? this.setAlpha(alpha, this.color) : this.color;
-  // ctx.fill();
+  ctx.fill();
   ctx.stroke();
   ctx.restore();
 };

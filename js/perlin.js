@@ -1,4 +1,4 @@
-var perlinNoise = (function() {
+var random = (function() {
 
     var vals = [];
     var vals2d = [];
@@ -105,6 +105,12 @@ var perlinNoise = (function() {
 
     return {
       perlin1d:perlin1d,
-      perlin2d:perlin2d
+      perlin2d:perlin2d,
+      monteCarlo: function() {
+        var val = monteCarlo();
+        if(Math.random() > 0.5) { return val *= -1; }
+        return val;
+      },
+      umonteCarlo: monteCarlo
     };
 })();
