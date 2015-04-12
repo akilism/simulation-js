@@ -1,8 +1,9 @@
 var GameOfLife = function(cellSize, canvasWidth, canvasHeight) {
   this.cellSize = cellSize;
-  this.cols = Math.floor((canvasWidth)/cellSize);
-  this.rows = Math.floor((canvasHeight-100)/cellSize);
+  this.cols = Math.floor(canvasWidth / cellSize);
+  this.rows = Math.floor(canvasHeight / cellSize);
   this.board = this.initBoard();
+  this.generations = 0;
 };
 
 GameOfLife.prototype.initBoard = function() {
@@ -10,7 +11,7 @@ GameOfLife.prototype.initBoard = function() {
   for(var x = 0; x < this.cols; x++) {
     board[x] = (!board[x]) ? [] : board[x];
     for(var y = 0; y < this.rows; y++) {
-      board[x][y] = (Math.random() > 0.5) ? 0 : 1;
+      board[x][y] = Math.round(random.perlin1d(y*x));
     }
   }
   return board;
@@ -25,6 +26,7 @@ GameOfLife.prototype.spawn = function() {
     });
   });
   this.board = child;
+  this.generations++;
 };
 
 GameOfLife.prototype.getNeighborCount = function(x, y) {

@@ -70,6 +70,7 @@ var cnvs = (function() {
       // { 100: 1, 101: 1, 110: 1, 111: 1, 011: 1, 010: 0, 001: 1, 000: 0 }
       // { 100: 1, 101: 1, 110: 1, 111: 0, 011: 1, 010: 1, 001: 1, 000: 0 }
       // { 100: 1, 101: 1, 110: 0, 111: 1, 011: 0, 010: 1, 001: 1, 000: 1 }
+      // { 100: 1, 101: 1, 110: 0, 111: 1, 011: 0, 010: 1, 001: 1, 000: 1 }
       // ca = new CellularAutomata({ '111': Math.round(random.umonteCarlo()),
       //   '110': Math.round(random.umonteCarlo()),
       //   '101': Math.round(random.umonteCarlo()),
@@ -78,8 +79,8 @@ var cnvs = (function() {
       //   '010': Math.round(random.umonteCarlo()),
       //   '001': Math.round(random.umonteCarlo()),
       //   '000': Math.round(random.umonteCarlo()) },
-      //   20, canvasWidth, canvasHeight);
-      gol = new GameOfLife(20, canvasWidth, canvasHeight);
+      //   10, canvasWidth, canvasHeight);
+      gol = new GameOfLife(10, canvasWidth, 240);
     } else {
       isCanvasEnabled = false;
     }
@@ -339,9 +340,39 @@ var cnvs = (function() {
     drawBoids();
 
     // drawCells();
-    drawGoL();
+    // drawGoL();
     counter++;
+
+    // drawRecursiveCircles(canvasWidth/2, canvasHeight/2, canvasWidth/2);
+    // cantor(10, 20, canvasWidth-20);
   };
+
+
+  var cantor = function(x, y , len) {
+    if(len >= 1) {
+      var newLineGap = 20;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + len, y);
+      ctx.closePath();
+      ctx.stroke();
+
+      cantor(x, y + newLineGap, len/3);
+      cantor(x + len * 2/3, y + newLineGap, len/3);
+    }
+  };
+
+  var drawRecursiveCircles = function(x, y, r) {
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, 2*Math.PI, false);
+      ctx.stroke();
+      if(r > 10) {
+        drawRecursiveCircles(x + r/2, y - r/2, r/2);
+        drawRecursiveCircles(x - r/2, y + r/2, r/2);
+        // drawRecursiveCircles(x + r/2, y + r/2, r/2);
+        // drawRecursiveCircles(x - r/2, y - r/2, r/2);
+      }
+    };
 
   var drawCells = function() {
     ca.generations.forEach(function(generation, g) {
@@ -357,8 +388,8 @@ var cnvs = (function() {
     gol.board.forEach(function(col, x) {
       col.forEach(function(cell, y) {
         ctx.fillStyle = (cell === 1) ? '#000' : '#ddd';
-        ctx.fillRect((y*gol.cellSize), x*gol.cellSize, gol.cellSize, gol.cellSize);
-        ctx.strokeRect((y*gol.cellSize), x*gol.cellSize, gol.cellSize, gol.cellSize);
+        ctx.fillRect((x*gol.cellSize), y*gol.cellSize, gol.cellSize, gol.cellSize);
+        ctx.strokeRect((x*gol.cellSize), y*gol.cellSize, gol.cellSize, gol.cellSize);
       });
     });
   };
@@ -547,9 +578,11 @@ var cnvs = (function() {
     boidGrid = [];
 
 
-    if(counter % 10 === 0) {
+
+    if(counter % 4 === 0) {
+       // gol.spawn();
       // ca.spawn();
-      gol.spawn();
+      // console.log('number of generations:', gol.generations);
     }
 
   };
