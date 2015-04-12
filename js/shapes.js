@@ -6,7 +6,7 @@ var Shape = function(opts) {
 
 Shape.prototype.setPosition = function(position, angle) {
   this.angle = angle || 0;
-  this.position = position.get();
+  this.position = position;
 };
 
 Shape.prototype.setAlpha = function(alpha, color) {
@@ -26,15 +26,6 @@ var Rectangle = function(opts) {
 Rectangle.prototype = Object.create(Shape.prototype);
 Rectangle.prototype.constructor = Rectangle;
 
-Rectangle.prototype.draw = function(ctx, alpha) {
-  ctx.save();
-  ctx.translate(this.position.x, this.position.y);
-  ctx.rotate(this.angle);
-  ctx.fillStyle = (alpha) ? this.setAlpha(alpha, this.color) : this.color;
-  ctx.fillRect(0, 0, this.w, this.h);
-  ctx.restore();
-};
-
 
 var Triangle = function(opts) {
   Shape.call(this, opts);
@@ -45,20 +36,6 @@ var Triangle = function(opts) {
 Triangle.prototype = Object.create(Shape.prototype);
 Triangle.prototype.constructor = Triangle;
 
-Triangle.prototype.draw = function(ctx, alpha) {
-  ctx.save();
-  ctx.translate(this.position.x, this.position.y);
-  ctx.rotate(this.angle - Math.PI/2);
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(this.w/2, this.h);
-  ctx.lineTo(this.w, 0);
-  ctx.closePath();
-  ctx.fillStyle = (alpha) ? this.setAlpha(alpha, this.color) : this.color;
-  ctx.fill();
-  ctx.stroke();
-  ctx.restore();
-};
 
 var Circle = function(opts) {
   Shape.call(this, opts);
@@ -68,24 +45,6 @@ var Circle = function(opts) {
 
 Circle.prototype = Object.create(Shape.prototype);
 Circle.prototype.constructor = Circle;
-
-Circle.prototype.draw2 = function(ctx, alpha) {
-  ctx.beginPath();
-  ctx.arc(this.position.x, this.position.y, this.r, 0, this.endAngle, false);
-  ctx.fillStyle = (alpha) ? this.setAlpha(alpha, this.color) : this.color;
-  ctx.fill();
-};
-
-Circle.prototype.draw = function(ctx, alpha) {
-  ctx.save();
-  ctx.translate(this.position.x, this.position.y);
-  ctx.rotate(this.angle);
-  ctx.beginPath();
-  ctx.arc(0, 0, this.r, 0, this.endAngle, false);
-  ctx.fillStyle = (alpha) ? this.setAlpha(alpha, this.color) : this.color;
-  ctx.fill();
-  ctx.restore();
-};
 
 Circle.prototype.hit = function(x, y) {
   return (x <= this.position.x + this.r && x >= this.position.x - this.r) &&
@@ -103,13 +62,3 @@ var Confetti = function(opts) {
 
 Confetti.prototype = Object.create(Shape.prototype);
 Confetti.prototype.constructor = Confetti;
-
-Confetti.prototype.draw = function(ctx, alpha) {
-  ctx.save();
-  ctx.translate(this.position.x, this.position.y);
-  var angle = this.theta(this.position.y);
-  ctx.rotate(angle);
-  ctx.fillStyle = (alpha) ? this.setAlpha(alpha, this.color) : this.color;
-  ctx.fillRect(0, 0, this.w, this.h);
-  ctx.restore();
-};

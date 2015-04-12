@@ -46,11 +46,11 @@ Vector.prototype.normalize = function() {
 };
 
 Vector.prototype.distanceSquared = function(other) {
-  return Math.pow(this.x - other.x, 2) + Math.pow(this.y - other.y, 2);
+  return (this.x - other.x) * (this.x - other.x) + (this.y - other.y) * (this.y - other.y);
 };
 
 Vector.prototype.distance = function(other) {
-  return Math.sqrt(Math.pow(this.x - other.x, 2) + Math.pow(this.y - other.y, 2));
+  return Math.sqrt(this.distanceSquared(other));
 };
 
 Vector.prototype.limit = function(max) {

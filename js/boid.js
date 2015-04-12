@@ -1,6 +1,6 @@
 var Boid = function(position, shapeType, shapeOpts) {
   Vehicle.call(this, position, shapeType, shapeOpts);
-  this.latticeRes = 35;
+  this.latticeRes = 32;
 };
 
 Boid.prototype = Object.create(Vehicle.prototype);
@@ -15,7 +15,7 @@ Boid.prototype.flock = function(boids) {
 
   // alignmentForce = alignmentForce.multiply(0.5);
   // cohesionForce = cohesionForce.multiply(0.5);
-  separationForce = separationForce.multiply(1.5);
+  // separationForce = separationForce.multiply(1.5);
 
   this.applyForce(separationForce);
   this.applyForce(alignmentForce);

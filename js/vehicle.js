@@ -237,19 +237,19 @@ Vehicle.prototype.getNormalPoint = function(predictPos, a, b) {
 //Attempt to stay a certain number of pixels away from other vehicles.
 Vehicle.prototype.separate = function(vehicles) {
   var desiredSeparation = (this.shape.r) ? this.shape.r * 4 : this.shape.w * 4;
+  desiredSeparation *= desiredSeparation;
   var count = 0;
   var vehicle = this;
 
   var summer = function(sum, curr, i) {
-    var dist = vehicle.position.distance(curr.position);
-
+    var dist = vehicle.position.distanceSquared(curr.position);
     if ((dist > 0) && (dist < desiredSeparation)) {
       var diff = vehicle.position.subtract(curr.position);
       count++;
-      return sum.add(diff.normalize().divide(dist));
+      return sum.add(diff.normalize().divide(vehicle.position.distance(curr.position)));
     }
 
-    return sum.add(new Vector(0, 0));
+    return sum;
   };
 
   var sum = vehicles.reduce(summer, new Vector(0, 0));
@@ -268,23 +268,24 @@ Vehicle.prototype.separate = function(vehicles) {
 //Then apply steering force formula
 Vehicle.prototype.align = function(vehicles, dist) {
   var vehicle = this;
+  dist *= dist;
   var count = 0;
 
   var summer = function(sum, curr, i) {
-    var vDist = vehicle.position.distance(curr.position);
+    var vDist = vehicle.position.distanceSquared(curr.position);
 
     if((vDist > 0) && (vDist < dist)) {
       count++;
       return sum.add(curr.velocity);
     }
-    return sum.add(new Vector(0, 0));
+    return sum;
   };
 
   var sum = vehicles.reduce(summer, new Vector(0, 0));
 
   if(count > 0) {
     var avg = sum.divide(count);
-    var steer = sum.multiply(this.maxSpeed).subtract(this.velocity);
+    var steer = avg.multiply(this.maxSpeed).subtract(this.velocity);
     steer = steer.limit(this.maxForce);
     return steer;
   } else {
@@ -296,16 +297,17 @@ Vehicle.prototype.align = function(vehicles, dist) {
 //then seek that position.
 Vehicle.prototype.cohesion = function(vehicles, dist) {
   var vehicle = this;
+  dist *= dist;
   var count = 0;
 
   var summer = function(sum, curr, i) {
-    var vDist = vehicle.position.distance(curr.position);
+    var vDist = vehicle.position.distanceSquared(curr.position);
 
     if((vDist > 0) && (vDist < dist)) {
       count++;
       return sum.add(curr.position);
     }
-    return sum.add(new Vector(0, 0));
+    return sum;
   };
 
   var sum = vehicles.reduce(summer, new Vector(0, 0));

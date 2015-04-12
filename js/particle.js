@@ -29,10 +29,6 @@ Particle.prototype.update = function() {
   this.acceleration = this.acceleration.multiply(0);
 };
 
-Particle.prototype.draw = function(ctx) {
-  this.shape.draw(ctx, this.timeToLive);
-};
-
 Particle.prototype.isDead = function() {
   return (this.timeToLive < 0); // || (this.position.x > 1100 || this.position.x < 100) || (this.position.y < 0 || this.position.y > 700);
 };

@@ -14,10 +14,3 @@ Oscillator.prototype.oscillate = function() {
   this.position = new Vector(Math.sin(this.angle.x) * this.amplitude.x, Math.sin(this.angle.y) * this.amplitude.y);
   this.shape.setPosition(this.position, this.angle);
 };
-
-Oscillator.prototype.draw = function(ctx) {
-  ctx.save();
-  ctx.translate(this.canvasWidth/2, this.canvasHeight/2);
-  this.shape.draw(ctx);
-  ctx.restore();
-};

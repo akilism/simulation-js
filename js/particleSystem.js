@@ -66,10 +66,3 @@ ParticleSystem.prototype.update = function() {
     }
   });
 };
-
-ParticleSystem.prototype.draw = function(ctx) {
-  this.particles.forEach(function(particle) {
-    particle.draw(ctx);
-  });
-};
-
