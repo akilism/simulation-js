@@ -1,7 +1,7 @@
 (function() {
   var resizeCanvas = function(canvas) {
-    var w = Math.max(window.innerWidth, 360),
-      h = window.innerHeight;
+    var w = window.innerWidth - 20,
+    h = window.innerHeight - 20;
 
     if(!canvas) {
       canvas = document.querySelector('#bgCanvas');
@@ -16,8 +16,8 @@
   };
 
   var createCanvas = function () {
-    var w = Math.max(window.innerWidth, 360),
-    h = window.innerHeight; //Math.max(window.innerHeight, 640),
+    var w = window.innerWidth - 20,
+    h = window.innerHeight - 20;
     canvas = document.createElement('canvas'),
     wrapper = document.querySelector('#wrapper');
 
@@ -45,7 +45,7 @@
   };
 
   if(cnvs.isCanvasEnabled()) {
-    window.onresize = resizeCanvas;
+    // window.onresize = resizeCanvas;
     var elements = document.querySelectorAll('.main *:not(a)');
 
     Array.prototype.slice.call(elements, 0).forEach(function(element) {

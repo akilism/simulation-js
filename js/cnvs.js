@@ -5,8 +5,19 @@ var cnvs = (function() {
     drawPending,
     canvasHeight,
     canvasWidth,
+    clickX,
+    clickY,
+    moveX,
+    moveY,
     time = 0,
     counter = 0,
+    tx = 0,
+    ty = 10000,
+    mouseClicked = false,
+    xScaler,
+    yScaler,
+    rScaler,
+    alphaScaler,
     movers = [],
     oscillators = [],
     attractors = [],
@@ -19,19 +30,10 @@ var cnvs = (function() {
     vehicles = [],
     boids = [],
     boidGrid = [],
-    clickX,
-    clickY,
-    moveX,
-    moveY,
-    xScaler,
-    yScaler,
-    rScaler,
-    alphaScaler,
     flowField,
     path,
-    tx = 0,
-    ty = 10000,
-    mouseClicked = false;
+    ca,
+    gol;
 
   var setCanvas = function(can) {
     canvas = can;
@@ -56,12 +58,28 @@ var cnvs = (function() {
       // addSpring();
       // addPath(30);
       // flowField = new FlowField(canvasWidth, canvasHeight);
-      for(var i = 0; i < 250; i++) {
-        var x = Math.random() * canvasWidth;
-        var y = Math.random() * canvasHeight;
-        addBoid(x, y);
-        // addVehicle(x, y);
-      }
+      // for(var i = 0; i < 250; i++) {
+      //   var x = Math.random() * canvasWidth;
+      //   var y = Math.random() * canvasHeight;
+      //   addBoid(x, y);
+      //   // addVehicle(x, y);
+      // }
+      //cool rulesets.
+      // { '111': 0,'110': 1, '101': 0, '100': 1, '011': 1, '010': 0, '001': 1, '000': 0 }
+      // { '100': 1, '101': 1, '110': 1, '111': 0, '011': 1, '010': 1, '001': 1, '000': 0 }
+      // { 100: 1, 101: 1, 110: 1, 111: 1, 011: 1, 010: 0, 001: 1, 000: 0 }
+      // { 100: 1, 101: 1, 110: 1, 111: 0, 011: 1, 010: 1, 001: 1, 000: 0 }
+      // { 100: 1, 101: 1, 110: 0, 111: 1, 011: 0, 010: 1, 001: 1, 000: 1 }
+      // ca = new CellularAutomata({ '111': Math.round(random.umonteCarlo()),
+      //   '110': Math.round(random.umonteCarlo()),
+      //   '101': Math.round(random.umonteCarlo()),
+      //   '100': Math.round(random.umonteCarlo()),
+      //   '011': Math.round(random.umonteCarlo()),
+      //   '010': Math.round(random.umonteCarlo()),
+      //   '001': Math.round(random.umonteCarlo()),
+      //   '000': Math.round(random.umonteCarlo()) },
+      //   20, canvasWidth, canvasHeight);
+      gol = new GameOfLife(20, canvasWidth, canvasHeight);
     } else {
       isCanvasEnabled = false;
     }
@@ -319,7 +337,30 @@ var cnvs = (function() {
     waves.forEach(function(wave) { wave.draw(ctx); });
     vehicles.forEach(function(vehicle) { drawBody(vehicle); });
     drawBoids();
+
+    // drawCells();
+    drawGoL();
     counter++;
+  };
+
+  var drawCells = function() {
+    ca.generations.forEach(function(generation, g) {
+      generation.forEach(function(cell, i){
+        ctx.fillStyle = (cell === 1) ? '#000' : '#ddd';
+        ctx.fillRect((i*ca.cellSize), g*ca.cellSize, ca.cellSize, ca.cellSize);
+        ctx.strokeRect((i*ca.cellSize), g*ca.cellSize, ca.cellSize, ca.cellSize);
+      });
+    });
+  };
+
+  var drawGoL = function() {
+    gol.board.forEach(function(col, x) {
+      col.forEach(function(cell, y) {
+        ctx.fillStyle = (cell === 1) ? '#000' : '#ddd';
+        ctx.fillRect((y*gol.cellSize), x*gol.cellSize, gol.cellSize, gol.cellSize);
+        ctx.strokeRect((y*gol.cellSize), x*gol.cellSize, gol.cellSize, gol.cellSize);
+      });
+    });
   };
 
   var drawBoids = function() {
@@ -408,7 +449,8 @@ var cnvs = (function() {
     ctx.translate(body.shape.position.x, body.shape.position.y);
     ctx.rotate(body.shape.angle);
     ctx.fillStyle = (body.timeToLive) ? body.shape.setAlpha(body.timeToLive, body.shape.color) : body.shape.color;
-    ctx.fillRect(0, 0, body.shape.w, body.shape.h);
+    ctx.rect(0, 0, body.shape.w, body.shape.h);
+    ctx.fill();
     ctx.restore();
   };
 
@@ -503,6 +545,13 @@ var cnvs = (function() {
     boids.forEach(updateBoid);
     boidGrid = null;
     boidGrid = [];
+
+
+    if(counter % 10 === 0) {
+      // ca.spawn();
+      gol.spawn();
+    }
+
   };
 
   var bilatticeFlock = function(boid) {
