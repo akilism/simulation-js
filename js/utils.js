@@ -28,7 +28,8 @@ var utils = (function() {
 
   return {
     getSin: function(degrees) { return sinVals[degrees]; },
-    getCos: function(degrees) { return cosvals[degrees]; },
-    interpolater: interpolater
+    getCos: function(degrees) { return cosVals[degrees]; },
+    interpolater: interpolater,
+    radians:radians
   };
 })();

@@ -33,7 +33,8 @@ var cnvs = (function() {
     flowField,
     path,
     ca,
-    gol;
+    gol,
+    kochLines = [];
 
   var setCanvas = function(can) {
     canvas = can;
@@ -42,7 +43,7 @@ var cnvs = (function() {
       canvasHeight = canvas.height;
       canvasWidth = canvas.width;
       isCanvasEnabled = true;
-      // canvas.addEventListener('click', onClick);
+      canvas.addEventListener('click', onClick);
       // canvas.addEventListener('mousemove', onMouseMove);
       xScaler = utils.interpolater(0, 1, 0, 600);
       yScaler = utils.interpolater(0, 1, 0, 600);
@@ -80,7 +81,8 @@ var cnvs = (function() {
       //   '001': Math.round(random.umonteCarlo()),
       //   '000': Math.round(random.umonteCarlo()) },
       //   10, canvasWidth, canvasHeight);
-      gol = new GameOfLife(10, canvasWidth, 240);
+      // gol = new GameOfLife(10, canvasWidth, 240);
+      kochLines.push(new KochLine(new Vector(0, 400), new Vector(canvasWidth, 400)));
     } else {
       isCanvasEnabled = false;
     }
@@ -338,7 +340,7 @@ var cnvs = (function() {
     waves.forEach(function(wave) { wave.draw(ctx); });
     vehicles.forEach(function(vehicle) { drawBody(vehicle); });
     drawBoids();
-
+    kochLines.forEach(function(line) { drawKochLine(line); });
     // drawCells();
     // drawGoL();
     counter++;
@@ -347,6 +349,13 @@ var cnvs = (function() {
     // cantor(10, 20, canvasWidth-20);
   };
 
+  var drawKochLine = function(line) {
+    ctx.beginPath();
+    ctx.moveTo(line.start.x, line.start.y);
+    ctx.lineTo(line.end.x, line.end.y);
+    ctx.closePath();
+    ctx.stroke();
+  };
 
   var cantor = function(x, y , len) {
     if(len >= 1) {
@@ -514,7 +523,7 @@ var cnvs = (function() {
     clickY = evt.clientY;
     // console.log('click', clickX, clickY);
     mouseClicked = !mouseClicked;
-
+    updateKochLines();
     if(!mouseClicked) {
       ga('send', 'event', 'canvas', 'click', 'froze canvas', mouseClicked);
     } else {
@@ -577,14 +586,20 @@ var cnvs = (function() {
     boidGrid = null;
     boidGrid = [];
 
+    // if(counter % 4 === 0) {
+    //   // ca.spawn();
+    //   gol.spawn();
+    //   console.log('number of generations:', gol.generations);
+    // }
 
+  };
 
-    if(counter % 4 === 0) {
-       // gol.spawn();
-      // ca.spawn();
-      // console.log('number of generations:', gol.generations);
-    }
-
+  var updateKochLines = function() {
+    var nextLines = [];
+    kochLines.forEach(function(line) {
+      nextLines = nextLines.concat(line.getNextLines());
+    });
+    kochLines = nextLines;
   };
 
   var bilatticeFlock = function(boid) {
