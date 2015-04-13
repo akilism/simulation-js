@@ -82,8 +82,8 @@ var cnvs = (function() {
       //   '000': Math.round(random.umonteCarlo()) },
       //   10, canvasWidth, canvasHeight);
       // gol = new GameOfLife(10, canvasWidth, 240);
-      // kochLines.push(new KochLine(new Vector(0, 400), new Vector(canvasWidth, 400)));
-      tree();
+      kochLines.push(new KochLine(new Vector(0, 400), new Vector(canvasWidth, 400)));
+      // tree();
     } else {
       isCanvasEnabled = false;
     }
@@ -327,7 +327,7 @@ var cnvs = (function() {
   };
 
   var render = function() {
-    // ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     // drawMousePos();
     particleSystems.forEach(function(particleSystem) { drawParticleSystem(particleSystem); });
     repellers.forEach(function(repeller) { drawBody(repeller); });
@@ -348,7 +348,6 @@ var cnvs = (function() {
 
     // drawRecursiveCircles(canvasWidth/2, canvasHeight/2, canvasWidth/2);
     // cantor(10, 20, canvasWidth-20);
-    // tree();
   };
 
   var tree = function() {
@@ -383,7 +382,6 @@ var cnvs = (function() {
       // ctx.save();
       // ctx.rotate(-theta);
       // branch(len * scaleFactor);
-      // ctx.restore();
 
     }
     ctx.restore();
@@ -391,9 +389,11 @@ var cnvs = (function() {
 
   var drawKochLine = function(line) {
     ctx.beginPath();
+
     ctx.moveTo(line.start.x, line.start.y);
     ctx.lineTo(line.end.x, line.end.y);
     ctx.closePath();
+    ctx.strokeStyle = '#000';
     ctx.stroke();
   };
 
@@ -563,8 +563,8 @@ var cnvs = (function() {
     clickY = evt.clientY;
     // console.log('click', clickX, clickY);
     mouseClicked = !mouseClicked;
-    // updateKochLines();
-    tree();
+    updateKochLines();
+    // tree();
     if(!mouseClicked) {
       ga('send', 'event', 'canvas', 'click', 'froze canvas', mouseClicked);
     } else {
