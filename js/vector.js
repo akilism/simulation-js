@@ -70,8 +70,8 @@ Vector.prototype.angleBetween = function(other) {
 };
 
 Vector.prototype.rotate = function(angle) {
-  var rotX = (Math.cos(angle) * this.x) - (Math.sin(angle) * this.y);
-  var rotY = (Math.sin(angle) * this.x) + (Math.cos(angle) * this.y);
+  var rotX = (utils.getCos(angle) * this.x) - (utils.getSin(angle) * this.y);
+  var rotY = (utils.getSin(angle) * this.x) + (utils.getCos(angle) * this.y);
   return new Vector(rotX, rotY);
 };
 

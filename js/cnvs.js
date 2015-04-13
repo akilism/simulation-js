@@ -82,7 +82,8 @@ var cnvs = (function() {
       //   '000': Math.round(random.umonteCarlo()) },
       //   10, canvasWidth, canvasHeight);
       // gol = new GameOfLife(10, canvasWidth, 240);
-      kochLines.push(new KochLine(new Vector(0, 400), new Vector(canvasWidth, 400)));
+      // kochLines.push(new KochLine(new Vector(0, 400), new Vector(canvasWidth, 400)));
+      tree();
     } else {
       isCanvasEnabled = false;
     }
@@ -326,7 +327,7 @@ var cnvs = (function() {
   };
 
   var render = function() {
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    // ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     // drawMousePos();
     particleSystems.forEach(function(particleSystem) { drawParticleSystem(particleSystem); });
     repellers.forEach(function(repeller) { drawBody(repeller); });
@@ -347,6 +348,45 @@ var cnvs = (function() {
 
     // drawRecursiveCircles(canvasWidth/2, canvasHeight/2, canvasWidth/2);
     // cantor(10, 20, canvasWidth-20);
+    // tree();
+  };
+
+  var tree = function() {
+    console.log('tree called');
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+    ctx.translate(canvasWidth/2, canvasHeight);
+    branch(200);
+  };
+
+  var branch = function(len) {
+
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, -len);
+    ctx.stroke();
+    ctx.translate(0, -len);
+    // console.log('branch:', len);
+
+    var scaleFactor = 0.66;
+    // var theta = Math.PI/6;// * random.perlin1d(len);
+    if(len > 2) {
+
+      var i = Math.max(1, Math.floor(Math.random() * 4));
+
+      for(var p = 0; p < i; p++) {
+        var theta = (Math.random() > 0.5) ? (Math.PI/2) * random.perlin1d(len) : -(Math.PI/2) * random.perlin1d(len);
+        ctx.save();
+        ctx.rotate(theta);
+        branch(len * scaleFactor);
+        ctx.restore();
+      }
+      // ctx.save();
+      // ctx.rotate(-theta);
+      // branch(len * scaleFactor);
+      // ctx.restore();
+
+    }
+    ctx.restore();
   };
 
   var drawKochLine = function(line) {
@@ -523,7 +563,8 @@ var cnvs = (function() {
     clickY = evt.clientY;
     // console.log('click', clickX, clickY);
     mouseClicked = !mouseClicked;
-    updateKochLines();
+    // updateKochLines();
+    tree();
     if(!mouseClicked) {
       ga('send', 'event', 'canvas', 'click', 'froze canvas', mouseClicked);
     } else {
