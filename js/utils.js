@@ -20,6 +20,31 @@ var utils = (function() {
     return getVal;
   });
 
+  var randRangeFloat = function(min, max)  {
+    return Math.random() * (max - min) + min;
+  };
+
+  var randRangeInt = function(min, max)  {
+    return Math.floor(Math.random() * (max - min)) + min;
+  };
+
+  var getRandomChar = function() {
+    var n = randRangeInt(65, 91);
+    return (Math.random() < 1/27) ? ' ' : String.fromCharCode(n).toLowerCase();
+  };
+
+  var randInt = function(i) {
+    i = i || 1;
+    return Math.floor(Math.random() * i);
+  };
+
+  var range = function*(min, max) {
+    var i = min;
+    while(i < max) {
+      yield i++;
+    }
+  };
+
 
   for(var i = 0; i < 360; i++) {
     sinVals.push(Math.sin(radians(i)));
@@ -30,6 +55,11 @@ var utils = (function() {
     getSin: function(degrees) { return sinVals[degrees]; },
     getCos: function(degrees) { return cosVals[degrees]; },
     interpolater: interpolater,
-    radians:radians
+    radians:radians,
+    randRangeFloat:randRangeFloat,
+    randRangeInt:randRangeInt,
+    getRandomChar:getRandomChar,
+    randInt:randInt,
+    range:range
   };
 })();
