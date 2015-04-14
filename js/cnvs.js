@@ -82,7 +82,7 @@ var cnvs = (function() {
       //   '000': Math.round(random.umonteCarlo()) },
       //   10, canvasWidth, canvasHeight);
       // gol = new GameOfLife(10, canvasWidth, 240);
-      kochLines.push(new KochLine(new Vector(0, 400), new Vector(canvasWidth, 400)));
+      // kochLines.push(new KochLine(new Vector(0, 400), new Vector(canvasWidth, 400)));
       // tree();
     } else {
       isCanvasEnabled = false;
@@ -327,7 +327,7 @@ var cnvs = (function() {
   };
 
   var render = function() {
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    // ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     // drawMousePos();
     particleSystems.forEach(function(particleSystem) { drawParticleSystem(particleSystem); });
     repellers.forEach(function(repeller) { drawBody(repeller); });
@@ -351,20 +351,17 @@ var cnvs = (function() {
   };
 
   var tree = function() {
-    console.log('tree called');
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
+    // ctx.fillRect(0, 0, canvasWidth, canvasHeight, 1);
     ctx.translate(canvasWidth/2, canvasHeight);
     branch(200);
+    ctx.restore();
   };
 
   var branch = function(len) {
-
     ctx.moveTo(0, 0);
     ctx.lineTo(0, -len);
     ctx.stroke();
     ctx.translate(0, -len);
-    // console.log('branch:', len);
 
     var scaleFactor = 0.66;
     // var theta = Math.PI/6;// * random.perlin1d(len);
@@ -389,7 +386,6 @@ var cnvs = (function() {
 
   var drawKochLine = function(line) {
     ctx.beginPath();
-
     ctx.moveTo(line.start.x, line.start.y);
     ctx.lineTo(line.end.x, line.end.y);
     ctx.closePath();
@@ -563,8 +559,8 @@ var cnvs = (function() {
     clickY = evt.clientY;
     // console.log('click', clickX, clickY);
     mouseClicked = !mouseClicked;
-    updateKochLines();
-    // tree();
+    // updateKochLines();
+
     if(!mouseClicked) {
       ga('send', 'event', 'canvas', 'click', 'froze canvas', mouseClicked);
     } else {
