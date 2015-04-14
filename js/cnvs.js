@@ -327,7 +327,7 @@ var cnvs = (function() {
   };
 
   var render = function() {
-    // ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     // drawMousePos();
     particleSystems.forEach(function(particleSystem) { drawParticleSystem(particleSystem); });
     repellers.forEach(function(repeller) { drawBody(repeller); });
@@ -346,12 +346,11 @@ var cnvs = (function() {
     // drawGoL();
     counter++;
 
-    // drawRecursiveCircles(canvasWidth/2, canvasHeight/2, canvasWidth/2);
+    drawRecursiveCircles(canvasWidth/2, canvasHeight/2, canvasWidth/2);
     // cantor(10, 20, canvasWidth-20);
   };
 
   var tree = function() {
-    // ctx.fillRect(0, 0, canvasWidth, canvasHeight, 1);
     ctx.translate(canvasWidth/2, canvasHeight);
     branch(200);
     ctx.restore();
@@ -364,9 +363,8 @@ var cnvs = (function() {
     ctx.translate(0, -len);
 
     var scaleFactor = 0.66;
-    // var theta = Math.PI/6;// * random.perlin1d(len);
-    if(len > 2) {
 
+    if(len > 2) {
       var i = Math.max(1, Math.floor(Math.random() * 4));
 
       for(var p = 0; p < i; p++) {
@@ -376,10 +374,6 @@ var cnvs = (function() {
         branch(len * scaleFactor);
         ctx.restore();
       }
-      // ctx.save();
-      // ctx.rotate(-theta);
-      // branch(len * scaleFactor);
-
     }
     ctx.restore();
   };
